@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beacon Event — Parish Survey</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --dr-navy: #1a2744;
+    --dr-gold: #c9943a;
+    --dr-cream: #faf8f4;
+    --dr-green: #2e7d52;
+    --dr-green-light: #e8f5ee;
+    --dr-red: #b93232;
+    --dr-red-light: #fdeaea;
+    --dr-amber: #c97c20;
+    --dr-amber-light: #fef3e2;
+    --dr-blue: #2060a0;
+    --dr-blue-light: #e8f0fa;
+    --dr-border: #ddd8cc;
+    --dr-text: #1a1a1a;
+    --dr-muted: #6b6358;
+    --shadow: 0 2px 8px rgba(26,39,68,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; background: var(--dr-cream); color: var(--dr-text); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: var(--dr-navy); color: white; padding: 16px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25); position: sticky; top: 0; z-index: 50;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 40px; height: 40px; background: var(--dr-gold); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: bold; color: var(--dr-navy); font-family: sans-serif;
+  }
+  header h1 { font-size: 1.05rem; font-weight: normal; }
+  header h1 span { display: block; font-size: 0.7rem; opacity: 0.6; font-family: sans-serif; margin-top: 1px; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.75);
+    padding: 7px 15px; border-radius: 6px; cursor: pointer; font-size: 0.82rem;
+    font-family: sans-serif; transition: all 0.15s;
+  }
+  .nav-tab:hover { background: rgba(255,255,255,0.18); color: white; }
+  .nav-tab.active { background: var(--dr-gold); color: var(--dr-navy); font-weight: bold; }
+
+  /* LOADING */
+  .loading-bar {
+    height: 3px; background: var(--dr-gold);
+    position: fixed; top: 0; left: 0; z-index: 200;
+    transition: width 0.3s; width: 0%;
+  }
+  .loading-bar.active { animation: loadpulse 1.2s ease-in-out infinite; }
+  @keyframes loadpulse { 0%{width:20%} 50%{width:80%} 100%{width:20%} }
+
+  /* SYNC INDICATOR */
+  .sync-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--dr-green);
+    display: inline-block; margin-right: 6px; transition: background 0.3s;
+  }
+  .sync-dot.syncing { background: var(--dr-amber); animation: pulse 1s infinite; }
+  .sync-dot.error { background: var(--dr-red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .sync-label { font-size: 0.72rem; opacity: 0.7; font-family: sans-serif; display: flex; align-items: center; }
+
+  /* MAIN */
+  main { max-width: 1120px; margin: 0 auto; padding: 22px 18px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* PROGRESS */
+  .progress-banner {
+    background: white; border: 1px solid var(--dr-border); border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 24px; box-shadow: var(--shadow);
+  }
+  .progress-stat .num { font-size: 1.8rem; font-weight: bold; color: var(--dr-navy); font-family: sans-serif; }
+  .progress-stat .lbl { font-size: 0.7rem; color: var(--dr-muted); font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+  .progress-bar-wrap { flex: 1; }
+  .progress-bar-track { background: #e8e4dc; border-radius: 99px; height: 8px; overflow: hidden; }
+  .progress-bar-fill { background: var(--dr-green); height: 100%; border-radius: 99px; transition: width 0.4s; }
+  .progress-bar-label { font-size: 0.76rem; color: var(--dr-muted); font-family: sans-serif; margin-top: 4px; }
+
+  /* SECTION HEADING */
+  .section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-heading h2 { font-size: 1rem; color: var(--dr-navy); }
+
+  /* FILTER BAR */
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+  .filter-bar select, .filter-bar input {
+    padding: 6px 10px; border: 1.5px solid var(--dr-border); border-radius: 6px;
+    font-family: sans-serif; font-size: 0.81rem; background: white; color: var(--dr-text);
+  }
+  .filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: var(--dr-gold); }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 5px; padding: 7px 13px;
+    border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-family: sans-serif;
+    border: none; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--dr-navy); color: white; }
+  .btn-primary:hover { background: #253660; }
+  .btn-gold { background: var(--dr-gold); color: white; }
+  .btn-gold:hover { background: var(--dr-amber); }
+  .btn-ghost { background: transparent; color: var(--dr-muted); border: 1.5px solid var(--dr-border); }
+  .btn-ghost:hover { border-color: var(--dr-navy); color: var(--dr-navy); }
+  .btn-danger { background: var(--dr-red-light); color: var(--dr-red); border: 1px solid #f0c0c0; }
+  .btn-danger:hover { background: #fad5d5; }
+  .btn-sm { padding: 4px 9px; font-size: 0.75rem; }
+
+  /* PANELS */
+  .collapsible-panel {
+    background: white; border: 1.5px dashed var(--dr-border);
+    border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; display: none;
+  }
+  .collapsible-panel.open { display: block; }
+  .collapsible-panel h3 { font-size: 0.9rem; color: var(--dr-navy); margin-bottom: 12px; }
+
+  /* FORMS */
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; font-size: 0.8rem; font-weight: bold; color: var(--dr-navy); margin-bottom: 3px; font-family: sans-serif; }
+  .form-group label .opt { font-weight: normal; color: var(--dr-muted); }
+  .form-group .q-desc { font-size: 0.77rem; color: var(--dr-muted); font-family: sans-serif; margin-bottom: 6px; font-style: italic; line-height: 1.5; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 8px 10px; border: 1.5px solid var(--dr-border); border-radius: 6px;
+    font-family: 'Georgia', serif; font-size: 0.87rem; color: var(--dr-text);
+    background: #fdfcfa; transition: border-color 0.15s; resize: vertical;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--dr-gold); }
+  .form-group textarea { min-height: 90px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* PARISH CARDS */
+  .parish-grid { display: flex; flex-direction: column; gap: 7px; }
+  .parish-card {
+    background: white; border: 1px solid var(--dr-border); border-radius: 9px;
+    padding: 13px 16px; display: flex; align-items: flex-start; gap: 12px;
+    box-shadow: var(--shadow); transition: border-color 0.15s;
+  }
+  .parish-card:hover { border-color: var(--dr-gold); }
+  .status-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .status-not-started .status-dot { background: #ccc; }
+  .status-in-progress .status-dot { background: var(--dr-amber); }
+  .status-complete .status-dot { background: var(--dr-green); }
+  .parish-info { flex: 1; }
+  .parish-info .name { font-size: 0.94rem; font-weight: bold; color: var(--dr-navy); }
+  .parish-info .priest { font-size: 0.79rem; color: var(--dr-muted); font-family: sans-serif; margin-top: 2px; }
+  .parish-info .tags { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+  .tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; font-family: sans-serif; }
+  .tag-rl { background: var(--dr-blue-light); color: var(--dr-blue); }
+  .tag-coach-current { background: var(--dr-green-light); color: var(--dr-green); }
+  .tag-coach-historical { background: var(--dr-amber-light); color: var(--dr-amber); }
+  .tag-misc { background: #f0ece8; color: var(--dr-muted); }
+  .parish-badge { font-size: 0.69rem; padding: 2px 8px; border-radius: 99px; font-family: sans-serif; font-weight: bold; flex-shrink: 0; margin-top: 3px; }
+  .badge-not-started { background: #eeece8; color: #999; }
+  .badge-in-progress { background: var(--dr-amber-light); color: var(--dr-amber); }
+  .badge-complete { background: var(--dr-green-light); color: var(--dr-green); }
+  .parish-actions { display: flex; gap: 5px; flex-shrink: 0; padding-top: 1px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100;
+    align-items: flex-start; justify-content: center; overflow-y: auto; padding: 28px 14px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 13px; width: 100%; max-width: 660px; box-shadow: 0 8px 40px rgba(0,0,0,0.25); overflow: hidden; }
+  .modal-header { background: var(--dr-navy); color: white; padding: 16px 20px; display: flex; align-items: flex-start; justify-content: space-between; }
+  .modal-header h3 { font-size: 0.97rem; }
+  .modal-header p { font-size: 0.76rem; opacity: 0.65; font-family: sans-serif; margin-top: 3px; line-height: 1.4; }
+  .modal-close { background: rgba(255,255,255,0.15); border: none; color: white; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .modal-close:hover { background: rgba(255,255,255,0.3); }
+  .modal-body { padding: 20px; }
+  .modal-footer { padding: 12px 20px; border-top: 1px solid var(--dr-border); display: flex; justify-content: flex-end; gap: 8px; }
+
+  .q-label { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .q-num { width: 22px; height: 22px; border-radius: 50%; background: var(--dr-navy); color: white; font-family: sans-serif; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .q-title { font-size: 0.83rem; font-weight: bold; color: var(--dr-navy); font-family: sans-serif; }
+
+  /* SUMMARY */
+  .export-bar { background: var(--dr-navy); color: white; border-radius: 10px; padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .export-bar h3 { font-size: 0.94rem; margin-bottom: 2px; }
+  .export-bar p { font-size: 0.79rem; opacity: 0.72; font-family: sans-serif; }
+  .summary-intro { background: white; border: 1px solid var(--dr-border); border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .summary-intro h2 { font-size: 1rem; color: var(--dr-navy); margin-bottom: 3px; }
+  .summary-intro p { font-size: 0.82rem; color: var(--dr-muted); font-family: sans-serif; }
+  .q-summary-block { background: white; border: 1px solid var(--dr-border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; box-shadow: var(--shadow); }
+  .q-summary-header { padding: 13px 17px; display: flex; align-items: center; gap: 11px; border-bottom: 1px solid var(--dr-border); background: linear-gradient(to right,#f8f6f2,white); }
+  .q-summary-header .q-num { width: 28px; height: 28px; font-size: 0.8rem; }
+  .q-summary-header .q-info h3 { font-size: 0.9rem; color: var(--dr-navy); }
+  .q-summary-header .q-info p { font-size: 0.76rem; color: var(--dr-muted); font-family: sans-serif; margin-top: 1px; font-style: italic; }
+  .q-response-item { padding: 11px 17px; border-bottom: 1px solid #f0ece4; display: flex; gap: 11px; }
+  .q-response-item:last-child { border-bottom: none; }
+  .q-response-parish { width: 200px; flex-shrink: 0; }
+  .q-response-parish .p-name { font-size: 0.79rem; font-family: sans-serif; font-weight: bold; color: var(--dr-navy); }
+  .q-response-parish .p-meta { font-size: 0.71rem; color: var(--dr-muted); font-family: sans-serif; margin-top: 2px; line-height: 1.5; }
+  .q-response-parish .p-tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 3px; }
+  .q-response-text { font-size: 0.85rem; color: var(--dr-text); flex: 1; line-height: 1.65; }
+  .no-responses { padding: 18px; text-align: center; color: var(--dr-muted); font-family: sans-serif; font-size: 0.83rem; }
+
+  /* EMPTY / TOAST */
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--dr-muted); font-family: sans-serif; }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .empty-state h3 { color: var(--dr-navy); margin-bottom: 6px; }
+  .empty-state p { font-size: 0.83rem; max-width: 320px; margin: 0 auto; }
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; background: var(--dr-navy); color: white;
+    padding: 10px 16px; border-radius: 8px; font-family: sans-serif; font-size: 0.83rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3); transform: translateY(80px); opacity: 0;
+    transition: all 0.3s; z-index: 999;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 4px solid var(--dr-green); }
+  .toast.error { border-left: 4px solid var(--dr-red); }
+
+  /* IMPORT */
+  .import-format { background: var(--dr-cream); border: 1px solid var(--dr-border); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-family: monospace; font-size: 0.76rem; color: var(--dr-muted); line-height: 1.8; }
+  .import-format strong { color: var(--dr-navy); font-family: sans-serif; font-size: 0.76rem; display: block; margin-bottom: 3px; }
+
+  @media print {
+    header, .nav-tabs, .export-bar, .btn, .modal-overlay, .filter-bar, .progress-banner { display: none !important; }
+    body { background: white; }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loading-bar"></div>
+
+<header>
+  <div class="brand">
+    <div class="logo">DR</div>
+    <h1>Beacon Event — Parish Survey
+      <span>Divine Renovation Australia · March 2027</span>
+    </h1>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="sync-label"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Connected</span></div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchView('tracker',this)">Parish Tracker</button>
+      <button class="nav-tab" onclick="switchView('summary',this)">Summary for Brent</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- TRACKER -->
+  <div class="view active" id="view-tracker">
+    <div class="progress-banner">
+      <div class="progress-stat"><div class="num" id="stat-total">–</div><div class="lbl">Parishes</div></div>
+      <div class="progress-stat"><div class="num" id="stat-complete" style="color:var(--dr-green)">–</div><div class="lbl">Complete</div></div>
+      <div class="progress-stat"><div class="num" id="stat-progress" style="color:var(--dr-amber)">–</div><div class="lbl">In Progress</div></div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+        <div class="progress-bar-label" id="progress-label">Loading…</div>
+      </div>
+    </div>
+
+    <div class="section-heading">
+      <h2>Parishes</h2>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost" onclick="togglePanel('add-panel')">+ Add Parish</button>
+        <button class="btn btn-ghost" onclick="togglePanel('import-panel')">⬆ Import List</button>
+      </div>
+    </div>
+
+    <!-- ADD -->
+    <div class="collapsible-panel" id="add-panel">
+      <h3>Add Parish</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Parish Name *</label><input type="text" id="new-parish" placeholder="e.g. St Patrick's Mentone"></div>
+        <div class="form-group"><label>Priest Name *</label><input type="text" id="new-priest" placeholder="e.g. Fr. Michael Smith"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Regional Lead *</label>
+          <select id="new-rl">
+            <option value="">Select…</option>
+            <option value="Jonathan Stephens (WA)">Jonathan Stephens — WA</option>
+            <option value="Tomasz Juszczak (NSW)">Tomasz Juszczak — NSW</option>
+            <option value="Chris Da Silva (NSW/QLD)">Chris Da Silva — NSW/QLD</option>
+            <option value="Manisha Gunathunga (Other)">Manisha Gunathunga — Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Diocese / State <span class="opt">(optional)</span></label><input type="text" id="new-diocese" placeholder="e.g. Archdiocese of Melbourne"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Coach <span class="opt">(optional)</span></label>
+          <select id="new-coach">
+            <option value="">No coach assigned</option>
+            <option>Shanon Stallard</option><option>Cathy Kennedy</option>
+            <option>Debbie Riddell</option><option>Rob McDowell</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Coaching Relationship</label>
+          <select id="new-coach-status">
+            <option value="current">Current — actively being coached</option>
+            <option value="historical">Historical — was coached, not active</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="addParish()">Add Parish</button>
+        <button class="btn btn-ghost" onclick="togglePanel('add-panel')">Cancel</button>
+      </div>
+    </div>
+
+    <!-- IMPORT -->
+    <div class="collapsible-panel" id="import-panel">
+      <h3>Import Parish List</h3>
+      <div class="import-format">
+        <strong>Columns (tab or comma separated):</strong>
+        Parish Name · Priest · Regional Lead · Diocese · Coach · Coach Status (current/historical)<br>
+        <em>Example:</em> St Patrick's Mentone, Fr. Chris Ryan, Jonathan Stephens (WA), Archdiocese of Melbourne, Shanon Stallard, current
+      </div>
+      <div class="form-group"><label>Paste data</label><textarea id="import-data" style="min-height:110px;font-family:monospace;font-size:0.78rem" placeholder="Paste rows here…"></textarea></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="importParishes()">Import</button>
+        <button class="btn btn-ghost" onclick="togglePanel('import-panel')">Cancel</button>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+      <select id="filter-rl" onchange="renderCards()">
+        <option value="">All Regional Leads</option>
+        <option value="Jonathan Stephens (WA)">Jonathan Stephens (WA)</option>
+        <option value="Tomasz Juszczak (NSW)">Tomasz Juszczak (NSW)</option>
+        <option value="Chris Da Silva (NSW/QLD)">Chris Da Silva (NSW/QLD)</option>
+        <option value="Manisha Gunathunga (Other)">Manisha Gunathunga (Other)</option>
+      </select>
+      <select id="filter-coach" onchange="renderCards()">
+        <option value="">All Coaches</option>
+        <option value="none">No Coach</option>
+        <option value="current">Any — Current</option>
+        <option value="historical">Any — Historical</option>
+        <option>Shanon Stallard</option><option>Cathy Kennedy</option>
+        <option>Debbie Riddell</option><option>Rob McDowell</option>
+      </select>
+      <select id="filter-status" onchange="renderCards()">
+        <option value="">All Statuses</option>
+        <option value="not-started">Not Started</option>
+        <option value="in-progress">In Progress</option>
+        <option value="complete">Complete</option>
+      </select>
+      <input type="text" id="filter-search" placeholder="Search parishes…" oninput="renderCards()" style="flex:1;min-width:140px">
+      <span id="filter-count" style="font-size:0.78rem;color:var(--dr-muted);font-family:sans-serif"></span>
+    </div>
+
+    <div class="parish-grid" id="parish-grid">
+      <div class="empty-state"><div class="icon">⏳</div><h3>Loading parishes…</h3></div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="view" id="view-summary">
+    <div class="export-bar">
+      <div><h3>Summary for Brent Delfo</h3><p>Compiled responses — input for agenda design · Beacon Event, March 2027</p></div>
+      <button class="btn btn-ghost" onclick="window.print()" style="color:white;border-color:rgba(255,255,255,0.35)">🖨 Print / PDF</button>
+    </div>
+    <div id="summary-content"></div>
+  </div>
+
+</main>
+
+<!-- SURVEY MODAL -->
+<div class="modal-overlay" id="survey-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 id="modal-title">Parish Survey</h3><p id="modal-subtitle"></p></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="q-label"><div class="q-num">1</div><div class="q-title">Felt Needs</div></div>
+        <div class="q-desc">"What topics would you most want to learn from other key missional parishes around the country?"</div>
+        <textarea id="q1" placeholder="Enter the parish's response…"></textarea>
+      </div>
+      <div class="form-group">
+        <div class="q-label"><div class="q-num">2</div><div class="q-title">Your Strengths</div></div>
+        <div class="q-desc">"What do you think is going really well in your parish right now that might be of real interest to others?"</div>
+        <textarea id="q2" placeholder="Enter the parish's response…"></textarea>
+      </div>
+      <div class="form-group">
+        <div class="q-label"><div class="q-num">3</div><div class="q-title">Current Challenges</div></div>
+        <div class="q-desc">"What's not going as well as you'd like — that you'd love to see what other parishes are doing in that area?"</div>
+        <textarea id="q3" placeholder="Enter the parish's response…"></textarea>
+      </div>
+      <div class="form-group">
+        <div class="q-label"><div class="q-num">4</div><div class="q-title">Future Dreams</div></div>
+        <div class="q-desc">"In the next 2–3 years, what are you dreaming about that you'd love to get input on from brother priests?"</div>
+        <textarea id="q4" placeholder="Enter the parish's response…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Internal Notes <span class="opt">(not included in Brent's summary)</span></label>
+        <textarea id="q-notes" style="min-height:60px" placeholder="Tone, follow-up items, context…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSurvey()" id="save-btn">Save Responses</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://nzoaoaabsvercnaugzdn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56b2FvYWFic3ZlcmNuYXVnemRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0ODE3MjAsImV4cCI6MjA5NDA1NzcyMH0.xqaQR5HNbndE22MEPheSpugifyXh8RUR3TXGybmYZOQ';
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const TABLE = 'beacon_parishes';
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let parishes = [];
+let editingId = null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init() {
+  setSync('syncing', 'Loading…');
+  const { data, error } = await db.from(TABLE).select('*').order('created_at', { ascending: true });
+  if (error) { setSync('error', 'Connection error'); showToast('Could not connect to database', 'error'); return; }
+  parishes = data || [];
+  setSync('ok', 'Connected');
+  renderAll();
+
+  // Real-time subscription — updates across all connected browsers
+  db.channel('beacon_parishes_changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, payload => {
+      if (payload.eventType === 'INSERT') {
+        if (!parishes.find(p => p.id === payload.new.id)) parishes.push(payload.new);
+      } else if (payload.eventType === 'UPDATE') {
+        const i = parishes.findIndex(p => p.id === payload.new.id);
+        if (i >= 0) parishes[i] = payload.new;
+      } else if (payload.eventType === 'DELETE') {
+        parishes = parishes.filter(p => p.id !== payload.old.id);
+      }
+      renderAll();
+    })
+    .subscribe();
+}
+
+// ── SYNC STATUS ───────────────────────────────────────────────────────────────
+function setSync(state, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
+  lbl.textContent = label;
+}
+
+// ── CRUD ──────────────────────────────────────────────────────────────────────
+async function addParish() {
+  const name  = document.getElementById('new-parish').value.trim();
+  const priest= document.getElementById('new-priest').value.trim();
+  const rl    = document.getElementById('new-rl').value;
+  const diocese = document.getElementById('new-diocese').value.trim();
+  const coach = document.getElementById('new-coach').value;
+  const coachStatus = document.getElementById('new-coach-status').value;
+
+  if (!name || !priest) { showToast('Parish name and priest are required', 'error'); return; }
+  if (!rl) { showToast('Please select a Regional Lead', 'error'); return; }
+
+  setSync('syncing', 'Saving…');
+  const { error } = await db.from(TABLE).insert({
+    name, priest, regional_lead: rl, diocese,
+    coach: coach || '', coach_status: coach ? coachStatus : '',
+    q1:'', q2:'', q3:'', q4:'', notes:'', status:'not-started'
+  });
+  setSync('ok', 'Connected');
+  if (error) { showToast('Error adding parish', 'error'); return; }
+
+  ['new-parish','new-priest','new-diocese'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('new-rl').value='';
+  document.getElementById('new-coach').value='';
+  togglePanel('add-panel');
+  showToast('✓ Parish added');
+}
+
+async function removeParish(id) {
+  if (!confirm('Remove this parish and all its survey responses?')) return;
+  setSync('syncing', 'Deleting…');
+  const { error } = await db.from(TABLE).delete().eq('id', id);
+  setSync('ok', 'Connected');
+  if (error) { showToast('Error removing parish', 'error'); return; }
+  showToast('Parish removed');
+}
+
+async function importParishes() {
+  const raw = document.getElementById('import-data').value.trim();
+  if (!raw) { showToast('Nothing to import', 'error'); return; }
+  const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l && !l.startsWith('#'));
+  const rows = [];
+  lines.forEach(line => {
+    const cols = line.includes('\t') ? line.split('\t') : line.split(',');
+    const c = cols.map(x => x.trim().replace(/^"|"$/g,''));
+    const [name,priest,rl,diocese,coach,csRaw] = c;
+    if (!name || !priest) return;
+    const coachStatus = (csRaw||'').toLowerCase().includes('hist') ? 'historical' : 'current';
+    rows.push({ name, priest, regional_lead: rl||'', diocese: diocese||'', coach: coach||'', coach_status: coach ? coachStatus : '', q1:'',q2:'',q3:'',q4:'',notes:'',status:'not-started' });
+  });
+  if (!rows.length) { showToast('No valid rows found', 'error'); return; }
+  setSync('syncing', 'Importing…');
+  const { error } = await db.from(TABLE).insert(rows);
+  setSync('ok', 'Connected');
+  if (error) { showToast('Error importing parishes', 'error'); return; }
+  document.getElementById('import-data').value='';
+  togglePanel('import-panel');
+  showToast(`✓ Imported ${rows.length} parishes`);
+}
+
+// ── SURVEY MODAL ──────────────────────────────────────────────────────────────
+function openSurvey(id) {
+  const p = parishes.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = p.name;
+  const rlStr = p.regional_lead ? `RL: ${p.regional_lead}` : '';
+  const coachStr = p.coach ? `Coach: ${p.coach}${p.coach_status ? ' (' + p.coach_status + ')' : ''}` : '';
+  document.getElementById('modal-subtitle').textContent = [p.priest, p.diocese, rlStr, coachStr].filter(Boolean).join(' · ');
+  document.getElementById('q1').value = p.q1||'';
+  document.getElementById('q2').value = p.q2||'';
+  document.getElementById('q3').value = p.q3||'';
+  document.getElementById('q4').value = p.q4||'';
+  document.getElementById('q-notes').value = p.notes||'';
+  document.getElementById('survey-modal').classList.add('open');
+  setTimeout(() => document.getElementById('q1').focus(), 80);
+}
+
+function closeModal() {
+  document.getElementById('survey-modal').classList.remove('open');
+  editingId = null;
+}
+
+async function saveSurvey() {
+  const p = parishes.find(x => x.id === editingId);
+  if (!p) return;
+  const q1 = document.getElementById('q1').value.trim();
+  const q2 = document.getElementById('q2').value.trim();
+  const q3 = document.getElementById('q3').value.trim();
+  const q4 = document.getElementById('q4').value.trim();
+  const notes = document.getElementById('q-notes').value.trim();
+  const answered = [q1,q2,q3,q4].filter(Boolean).length;
+  const status = answered === 0 ? 'not-started' : answered < 4 ? 'in-progress' : 'complete';
+
+  document.getElementById('save-btn').textContent = 'Saving…';
+  setSync('syncing', 'Saving…');
+  const { error } = await db.from(TABLE).update({ q1, q2, q3, q4, notes, status }).eq('id', editingId);
+  document.getElementById('save-btn').textContent = 'Save Responses';
+  setSync('ok', 'Connected');
+  if (error) { showToast('Error saving responses', 'error'); return; }
+  closeModal();
+  showToast('✓ Responses saved');
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function getFiltered() {
+  const rl     = document.getElementById('filter-rl').value;
+  const coach  = document.getElementById('filter-coach').value;
+  const status = document.getElementById('filter-status').value;
+  const search = (document.getElementById('filter-search').value||'').toLowerCase();
+  return parishes.filter(p => {
+    if (rl && p.regional_lead !== rl) return false;
+    if (coach) {
+      if (coach === 'none' && p.coach) return false;
+      if (coach === 'current' && p.coach_status !== 'current') return false;
+      if (coach === 'historical' && p.coach_status !== 'historical') return false;
+      if (!['none','current','historical'].includes(coach) && p.coach !== coach) return false;
+    }
+    if (status && p.status !== status) return false;
+    if (search && !p.name.toLowerCase().includes(search) && !(p.priest||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function renderAll() { renderCards(); renderSummary(); }
+
+function renderCards() {
+  const grid = document.getElementById('parish-grid');
+  const filtered = getFiltered();
+  const total = parishes.length;
+  const complete = parishes.filter(p => p.status === 'complete').length;
+  const inprog  = parishes.filter(p => p.status === 'in-progress').length;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-complete').textContent = complete;
+  document.getElementById('stat-progress').textContent = inprog;
+  const pct = total > 0 ? Math.round((complete/total)*100) : 0;
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('progress-label').textContent = `${complete} of ${total} surveys complete`;
+  document.getElementById('filter-count').textContent = filtered.length < total ? `Showing ${filtered.length} of ${total}` : `${total} parishes`;
+
+  if (total === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">⛪</div><h3>No parishes yet</h3><p>Add parishes manually or use Import to paste your longlist.</p></div>`;
+    return;
+  }
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><h3>No matches</h3><p>Try adjusting your filters.</p></div>`;
+    return;
+  }
+
+  const badgeLabel = {'not-started':'Not Started','in-progress':'In Progress','complete':'Complete'};
+  const badgeClass = {'not-started':'badge-not-started','in-progress':'badge-in-progress','complete':'badge-complete'};
+
+  grid.innerHTML = filtered.map(p => {
+    const answered = [p.q1,p.q2,p.q3,p.q4].filter(Boolean).length;
+    let coachTag = '';
+    if (p.coach && p.coach_status === 'current') coachTag = `<span class="tag tag-coach-current">🟢 ${esc(p.coach)}</span>`;
+    else if (p.coach && p.coach_status === 'historical') coachTag = `<span class="tag tag-coach-historical">↩ ${esc(p.coach)} (historical)</span>`;
+    return `
+      <div class="parish-card status-${p.status}">
+        <div class="status-dot"></div>
+        <div class="parish-info">
+          <div class="name">${esc(p.name)}</div>
+          <div class="priest">${esc(p.priest)}${p.diocese ? ' · '+esc(p.diocese) : ''}</div>
+          <div class="tags">
+            ${p.regional_lead ? `<span class="tag tag-rl">📍 ${esc(p.regional_lead)}</span>` : ''}
+            ${coachTag}
+            ${p.status !== 'not-started' ? `<span class="tag tag-misc">${answered}/4 answered</span>` : ''}
+          </div>
+        </div>
+        <span class="parish-badge ${badgeClass[p.status]}">${badgeLabel[p.status]}</span>
+        <div class="parish-actions">
+          <button class="btn btn-gold btn-sm" onclick="openSurvey('${p.id}')">
+            ${p.status === 'not-started' ? '📝 Enter' : '✏️ Edit'}
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="removeParish('${p.id}')">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+const QUESTIONS = [
+  {num:1, title:'Felt Needs', key:'q1', q:'"What topics would you most want to learn from other key missional parishes around the country?"'},
+  {num:2, title:'Your Strengths', key:'q2', q:'"What do you think is going really well in your parish right now that might be of real interest to others?"'},
+  {num:3, title:'Current Challenges', key:'q3', q:'"What\'s not going as well as you\'d like — that you\'d love to see what other parishes are doing in that area?"'},
+  {num:4, title:'Future Dreams', key:'q4', q:'"In the next 2–3 years, what are you dreaming about that you\'d love to get input on from brother priests?"'},
+];
+
+function renderSummary() {
+  const el = document.getElementById('summary-content');
+  if (!el) return;
+  const complete = parishes.filter(p => p.status === 'complete').length;
+  const hasAny = parishes.filter(p => p.status !== 'not-started').length;
+  if (parishes.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><h3>No data yet</h3><p>Add parishes and enter responses in the Parish Tracker tab.</p></div>`;
+    return;
+  }
+  let html = `<div class="summary-intro"><h2>Pre-Event Survey — Compiled Responses</h2><p><strong>${complete}</strong> complete · <strong>${hasAny}</strong> with some responses · <strong>${parishes.length}</strong> total parishes · Divine Renovation Australia · Beacon Event, March 2027</p></div>`;
+  QUESTIONS.forEach(q => {
+    const responses = parishes.filter(p => p[q.key] && p[q.key].trim());
+    html += `<div class="q-summary-block"><div class="q-summary-header"><div class="q-num">${q.num}</div><div class="q-info"><h3>${q.title}</h3><p>${q.q}</p></div></div><div>`;
+    if (!responses.length) {
+      html += `<div class="no-responses">No responses recorded yet.</div>`;
+    } else {
+      responses.forEach(p => {
+        let cb = '';
+        if (p.coach && p.coach_status === 'current') cb = `<span class="tag tag-coach-current" style="font-size:0.68rem;padding:1px 6px">🟢 ${esc(p.coach)}</span>`;
+        else if (p.coach && p.coach_status === 'historical') cb = `<span class="tag tag-coach-historical" style="font-size:0.68rem;padding:1px 6px">↩ ${esc(p.coach)}</span>`;
+        html += `<div class="q-response-item">
+          <div class="q-response-parish">
+            <div class="p-name">${esc(p.name)}</div>
+            <div class="p-meta">${esc(p.priest)}${p.diocese?'<br>'+esc(p.diocese):''}</div>
+            <div class="p-tags">
+              ${p.regional_lead?`<span class="tag tag-rl" style="font-size:0.68rem;padding:1px 6px">📍 ${esc(p.regional_lead)}</span>`:''}
+              ${cb}
+            </div>
+          </div>
+          <div class="q-response-text">${esc(p[q.key]).replace(/\n/g,'<br>')}</div>
+        </div>`;
+      });
+    }
+    html += `</div></div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function togglePanel(id) {
+  ['add-panel','import-panel'].forEach(p => { if (p!==id) document.getElementById(p).classList.remove('open'); });
+  document.getElementById(id).classList.toggle('open');
+}
+
+function switchView(view, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (view === 'summary') renderSummary();
+}
+
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type}`;
+  void t.offsetWidth; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+document.getElementById('survey-modal').addEventListener('click', e => { if (e.target.id==='survey-modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeModal(); });
+
+init();
+</script>
+</body>
+</html>
