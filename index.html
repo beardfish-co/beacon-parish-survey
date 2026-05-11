@@ -411,6 +411,41 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="details-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3>Edit Parish Details</h3><p>Update the core information for this parish</p></div>
+      <button class="modal-close" onclick="closeEditDetails()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Parish Name</label><input type="text" id="edit-name" placeholder="e.g. St Patrick's, Fremantle"></div>
+      <div class="form-group"><label>Priest</label><input type="text" id="edit-priest" placeholder="e.g. Fr John Smith"></div>
+      <div class="form-group"><label>Regional Lead</label>
+        <select id="edit-rl">
+          <option value="">— select —</option>
+          <option>Jonathan Stephens (WA)</option>
+          <option>Tomasz Juszczak (NSW)</option>
+          <option>Chris Da Silva (NSW/QLD)</option>
+          <option>Manisha Gunathunga (Other)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Diocese</label><input type="text" id="edit-diocese" placeholder="e.g. Archdiocese of Perth"></div>
+      <div class="form-group"><label>Coach</label><input type="text" id="edit-coach" placeholder="e.g. Fr Michael Kelly"></div>
+      <div class="form-group"><label>Coach Status</label>
+        <select id="edit-coach-status">
+          <option value="">None</option>
+          <option value="current">Current</option>
+          <option value="historical">Historical</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEditDetails()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDetails()">Save Details</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -634,6 +669,7 @@ function renderCards() {
           <button class="btn btn-gold btn-sm" onclick="openSurvey('${p.id}')">
             ${p.status === 'not-started' ? '📝 Enter' : '✏️ Edit'}
           </button>
+          <button class="btn btn-ghost btn-sm" onclick="openEditDetails('${p.id}')" title="Edit parish details">⚙</button>
           <button class="btn btn-danger btn-sm" onclick="removeParish('${p.id}')">✕</button>
         </div>
       </div>`;
@@ -712,7 +748,51 @@ function showToast(msg, type='success') {
 }
 
 document.getElementById('survey-modal').addEventListener('click', e => { if (e.target.id==='survey-modal') closeModal(); });
-document.addEventListener('keydown', e => { if (e.key==='Escape') closeModal(); });
+document.getElementById('details-modal').addEventListener('click', e => { if (e.target.id==='details-modal') closeEditDetails(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape') { closeModal(); closeEditDetails(); } });
+
+// ── EDIT DETAILS ──────────────────────────────────────────────────────────────
+let editingDetailsId = null;
+
+function openEditDetails(id) {
+  const p = parishes.find(x => x.id === id);
+  if (!p) return;
+  editingDetailsId = id;
+  document.getElementById('edit-name').value = p.name || '';
+  document.getElementById('edit-priest').value = p.priest || '';
+  document.getElementById('edit-rl').value = p.regional_lead || '';
+  document.getElementById('edit-diocese').value = p.diocese || '';
+  document.getElementById('edit-coach').value = p.coach || '';
+  document.getElementById('edit-coach-status').value = p.coach_status || '';
+  document.getElementById('details-modal').classList.add('open');
+}
+
+function closeEditDetails() {
+  document.getElementById('details-modal').classList.remove('open');
+  editingDetailsId = null;
+}
+
+async function saveDetails() {
+  const p = parishes.find(x => x.id === editingDetailsId);
+  if (!p) return;
+  const updates = {
+    name: document.getElementById('edit-name').value.trim(),
+    priest: document.getElementById('edit-priest').value.trim(),
+    regional_lead: document.getElementById('edit-rl').value,
+    diocese: document.getElementById('edit-diocese').value.trim(),
+    coach: document.getElementById('edit-coach').value.trim(),
+    coach_status: document.getElementById('edit-coach-status').value,
+  };
+  if (!updates.name || !updates.priest) { showToast('Parish name and priest are required', 'error'); return; }
+  setSync('syncing', 'Saving…');
+  const { error } = await db.from(TABLE).update(updates).eq('id', editingDetailsId);
+  if (error) { setSync('error', 'Save failed'); showToast('Could not save — try again', 'error'); return; }
+  Object.assign(p, updates);
+  setSync('ok', 'Saved');
+  showToast('Parish details updated');
+  closeEditDetails();
+  renderAll();
+}
 
 init();
 </script>
