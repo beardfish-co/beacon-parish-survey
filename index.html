@@ -233,6 +233,95 @@
     body { background: white; }
   }
 
+  /* ── MOBILE ────────────────────────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    /* Header: compact 2-row layout */
+    header {
+      padding: 10px 14px;
+      flex-direction: column;
+      gap: 8px;
+    }
+    header > div:first-child { gap: 10px; } /* brand row */
+    .logo { width: 30px; height: 30px; font-size: 12px; }
+    header h1 { font-size: 0.82rem; }
+    header h1 span { display: none; } /* hide subtitle */
+    /* Right side: sync dot + nav tabs on one row */
+    header > div:last-child { width: 100%; gap: 8px; }
+    .sync-label .sync-dot { width: 7px; height: 7px; }
+    .sync-label span:last-child { display: none; } /* hide "Connected" text */
+    .nav-tabs { flex: 1; }
+    .nav-tab { flex: 1; padding: 7px 4px; font-size: 0.77rem; text-align: center; }
+
+    /* Main */
+    main { padding: 12px 10px; }
+
+    /* Progress banner: tighter, wrap progress bar to full width */
+    .progress-banner { padding: 11px 13px; gap: 8px 16px; flex-wrap: wrap; }
+    .progress-stat .num { font-size: 1.5rem; }
+    .progress-stat .lbl { font-size: 0.65rem; }
+    .progress-bar-wrap { width: 100%; flex: none; order: 4; }
+
+    /* Section heading buttons */
+    .section-heading { flex-wrap: wrap; gap: 6px; }
+    .section-heading > div { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    /* Filter bar: stack vertically */
+    .filter-bar { flex-direction: column; gap: 6px; }
+    .filter-bar select,
+    .filter-bar input { width: 100%; min-width: 0; }
+    #filter-count { text-align: right; }
+
+    /* Parish cards: actions wrap to second row */
+    .parish-card { flex-wrap: wrap; padding: 10px 11px; gap: 6px 10px; }
+    .parish-info { flex: 1; min-width: 0; }
+    .parish-info .name { font-size: 0.88rem; }
+    .parish-info .priest { font-size: 0.76rem; }
+    .parish-badge { order: 3; align-self: flex-start; margin-top: 1px; }
+    .parish-actions {
+      order: 4; width: 100%;
+      justify-content: flex-end;
+      padding-top: 7px;
+      border-top: 1px solid var(--dr-border);
+    }
+
+    /* Collapsible panels */
+    .collapsible-panel { padding: 13px; }
+    .form-row { grid-template-columns: 1fr; gap: 0; }
+
+    /* Modal: bottom sheet */
+    .modal-overlay {
+      padding: 48px 0 0;
+      align-items: flex-end;
+    }
+    .modal {
+      border-radius: 18px 18px 0 0;
+      max-width: 100%;
+      max-height: 92dvh;
+      overflow-y: auto;
+    }
+    .modal-header { padding: 13px 15px; flex-wrap: wrap; gap: 8px; }
+    .modal-header h3 { font-size: 0.88rem; }
+    .modal-header p { font-size: 0.72rem; }
+    .modal-header > div:last-child { flex-shrink: 0; }
+    #capture-toggle-btn { font-size: 0.71rem; padding: 4px 8px; white-space: nowrap; }
+    .modal-body { padding: 13px 15px; }
+    .modal-footer { padding: 10px 15px; }
+
+    /* Capture section on mobile */
+    .capture-section-body { padding: 10px; }
+    .input-tab { font-size: 0.72rem; padding: 8px 3px; }
+    .record-btn { width: 76px; height: 76px; }
+    .record-icon { font-size: 1.55rem; }
+    .record-centre { padding: 10px 0 6px; }
+    .record-timer { font-size: 1.2rem; }
+
+    /* Summary view */
+    .export-bar { flex-direction: column; gap: 8px; }
+    .q-response-item { flex-direction: column; gap: 5px; }
+    .q-response-parish { width: 100%; }
+    .q-summary-header { flex-wrap: wrap; }
+  }
+
   /* CAPTURE SECTION (inline in survey modal) */
   .capture-section {
     border: 1.5px solid var(--dr-gold); border-radius: 10px;
