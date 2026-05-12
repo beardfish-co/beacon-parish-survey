@@ -169,7 +169,7 @@
     align-items: flex-start; justify-content: center; overflow-y: auto; padding: 28px 14px;
   }
   .modal-overlay.open { display: flex; }
-  .modal { background: white; border-radius: 13px; width: 100%; max-width: 660px; box-shadow: 0 8px 40px rgba(0,0,0,0.25); overflow: hidden; }
+  .modal { background: white; border-radius: 13px; width: 100%; max-width: 700px; box-shadow: 0 8px 40px rgba(0,0,0,0.25); overflow: hidden; }
   .modal-header { background: var(--dr-navy); color: white; padding: 16px 20px; display: flex; align-items: flex-start; justify-content: space-between; }
   .modal-header h3 { font-size: 0.97rem; }
   .modal-header p { font-size: 0.76rem; opacity: 0.65; font-family: sans-serif; margin-top: 3px; line-height: 1.4; }
@@ -227,14 +227,30 @@
     body { background: white; }
   }
 
-  /* CAPTURE MODAL — INPUT TABS */
+  /* CAPTURE SECTION (inline in survey modal) */
+  .capture-section {
+    border: 1.5px solid var(--dr-gold); border-radius: 10px;
+    margin-bottom: 22px; overflow: hidden;
+  }
+  .capture-section-header {
+    background: var(--dr-navy); color: white; padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: sans-serif; font-size: 0.84rem; font-weight: bold;
+  }
+  .capture-section-body { padding: 14px; }
+  .capture-section-footer {
+    padding: 8px 14px; border-top: 1px solid var(--dr-border);
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+
+  /* INPUT TABS */
   .input-tabs {
-    display: flex; gap: 0; margin-bottom: 18px;
+    display: flex; gap: 0; margin-bottom: 14px;
     border: 1.5px solid var(--dr-border); border-radius: 8px; overflow: hidden;
   }
   .input-tab {
-    flex: 1; padding: 10px 8px; border: none; background: white;
-    font-family: sans-serif; font-size: 0.8rem; cursor: pointer; color: var(--dr-muted);
+    flex: 1; padding: 9px 8px; border: none; background: white;
+    font-family: sans-serif; font-size: 0.79rem; cursor: pointer; color: var(--dr-muted);
     transition: all 0.15s; border-right: 1.5px solid var(--dr-border);
   }
   .input-tab:last-child { border-right: none; }
@@ -242,49 +258,62 @@
   .input-tab.active { background: var(--dr-navy); color: white; font-weight: bold; }
 
   /* RECORD BUTTON */
-  .record-centre { text-align: center; padding: 20px 0 14px; }
+  .record-centre { text-align: center; padding: 14px 0 10px; }
   .record-btn {
-    width: 100px; height: 100px; border-radius: 50%;
+    width: 90px; height: 90px; border-radius: 50%;
     border: 3px solid var(--dr-border); background: white; cursor: pointer;
     display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 5px; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    gap: 4px; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.1);
   }
   .record-btn:hover { border-color: var(--dr-red); box-shadow: 0 4px 20px rgba(185,50,50,0.2); }
   .record-btn.recording { border-color: var(--dr-red); background: var(--dr-red-light); animation: rec-pulse 1s ease-in-out infinite; }
   .record-btn.done { border-color: var(--dr-green); background: var(--dr-green-light); }
   @keyframes rec-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-  .record-icon { font-size: 2rem; line-height: 1; }
-  .record-label { font-family: sans-serif; font-size: 0.68rem; color: var(--dr-muted); }
+  .record-icon { font-size: 1.8rem; line-height: 1; }
+  .record-label { font-family: sans-serif; font-size: 0.66rem; color: var(--dr-muted); }
   .record-btn.recording .record-label { color: var(--dr-red); }
   .record-btn.done .record-label { color: var(--dr-green); }
-  .record-timer { font-family: monospace; font-size: 1.5rem; color: var(--dr-red); margin-top: 14px; font-weight: bold; letter-spacing: 0.05em; }
-  .record-hint { font-family: sans-serif; font-size: 0.74rem; color: var(--dr-muted); margin-top: 10px; }
+  .record-timer { font-family: monospace; font-size: 1.4rem; color: var(--dr-red); margin-top: 10px; font-weight: bold; letter-spacing: 0.05em; }
+  .record-hint { font-family: sans-serif; font-size: 0.72rem; color: var(--dr-muted); margin-top: 8px; }
 
-  /* UPLOAD / TRANSCRIPTION */
+  /* UPLOAD */
   .upload-zone {
-    border: 2px dashed var(--dr-border); border-radius: 10px; padding: 28px 20px;
+    border: 2px dashed var(--dr-border); border-radius: 10px; padding: 22px 20px;
     text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s;
   }
   .upload-zone:hover, .upload-zone.drag-over { border-color: var(--dr-gold); background: var(--dr-amber-light); }
-  .upload-icon { font-size: 2rem; margin-bottom: 6px; }
-  .upload-label { font-family: sans-serif; font-size: 0.88rem; font-weight: bold; color: var(--dr-navy); }
-  .upload-hint { font-family: sans-serif; font-size: 0.75rem; color: var(--dr-muted); margin-top: 4px; line-height: 1.5; }
+  .upload-icon { font-size: 1.8rem; margin-bottom: 5px; }
+  .upload-label { font-family: sans-serif; font-size: 0.85rem; font-weight: bold; color: var(--dr-navy); }
+  .upload-hint { font-family: sans-serif; font-size: 0.73rem; color: var(--dr-muted); margin-top: 3px; line-height: 1.5; }
   .file-selected-bar {
     display: flex; align-items: center; justify-content: space-between;
     background: var(--dr-green-light); border: 1px solid var(--dr-green);
     border-radius: 7px; padding: 8px 12px; margin-top: 8px;
     font-family: sans-serif; font-size: 0.82rem; color: var(--dr-green);
   }
+
+  /* PROCESSING */
   .transcribe-spinner {
-    width: 36px; height: 36px; border: 3px solid var(--dr-border);
+    width: 32px; height: 32px; border: 3px solid var(--dr-border);
     border-top-color: var(--dr-gold); border-radius: 50%;
     animation: spin 0.8s linear infinite; margin: 0 auto;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .transcript-preview { background: var(--dr-cream); border: 1px solid var(--dr-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; }
-  .transcript-toggle { font-family: sans-serif; font-size: 0.81rem; cursor: pointer; color: var(--dr-blue); user-select: none; }
-  #transcript-text { font-family: sans-serif; font-size: 0.79rem; color: var(--dr-muted); line-height: 1.6; margin-top: 8px; white-space: pre-wrap; max-height: 160px; overflow-y: auto; }
-  .transcribe-intro { font-family: sans-serif; font-size: 0.81rem; color: var(--dr-muted); margin: 0 0 12px; line-height: 1.5; }
+
+  /* TRANSCRIPT PREVIEW */
+  .transcript-preview { background: var(--dr-cream); border: 1px solid var(--dr-border); border-radius: 8px; padding: 9px 13px; margin-bottom: 0; }
+  .transcript-toggle { font-family: sans-serif; font-size: 0.8rem; cursor: pointer; color: var(--dr-blue); user-select: none; }
+  #transcript-text { font-family: sans-serif; font-size: 0.78rem; color: var(--dr-muted); line-height: 1.6; margin-top: 8px; white-space: pre-wrap; max-height: 140px; overflow-y: auto; }
+
+  .transcribe-intro { font-family: sans-serif; font-size: 0.8rem; color: var(--dr-muted); margin: 0 0 10px; line-height: 1.5; }
+
+  /* CAPTURE DONE STATE */
+  .capture-done-banner {
+    background: var(--dr-green-light); border: 1px solid var(--dr-green);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;
+    font-family: sans-serif; font-size: 0.82rem; color: var(--dr-green);
+    display: flex; align-items: center; gap: 8px;
+  }
 </style>
 </head>
 <body>
@@ -435,9 +464,88 @@
   <div class="modal">
     <div class="modal-header">
       <div><h3 id="modal-title">Parish Survey</h3><p id="modal-subtitle"></p></div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <button class="btn btn-gold btn-sm" id="capture-toggle-btn" onclick="toggleCaptureSection()">🎙 Capture Interview</button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
     </div>
     <div class="modal-body">
+
+      <!-- INLINE CAPTURE SECTION -->
+      <div class="capture-section" id="capture-section" style="display:none">
+        <div class="capture-section-header">
+          <span>🎙 Capture Interview</span>
+          <button onclick="toggleCaptureSection()" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center">✕</button>
+        </div>
+        <div class="capture-section-body">
+
+          <!-- INPUT TABS -->
+          <div class="input-tabs" id="input-tabs">
+            <button class="input-tab active" onclick="switchInputTab('record',this)">⏺ Record</button>
+            <button class="input-tab" onclick="switchInputTab('upload',this)">⬆ Upload File</button>
+            <button class="input-tab" onclick="switchInputTab('paste',this)">📋 Paste Transcript</button>
+          </div>
+
+          <!-- TAB: RECORD -->
+          <div id="tab-record" class="tab-panel">
+            <p class="transcribe-intro">Record the interview directly — ideal for in-person conversations. Tap the button to start, tap again to stop.</p>
+            <div class="record-centre">
+              <button class="record-btn" id="record-btn" onclick="toggleRecording()" type="button">
+                <span class="record-icon">⏺</span>
+                <span class="record-label">Tap to Record</span>
+              </button>
+              <div class="record-timer" id="record-timer" style="display:none">00:00</div>
+              <p class="record-hint" id="record-hint">Recording captures everything — AI extracts the four responses</p>
+            </div>
+          </div>
+
+          <!-- TAB: UPLOAD -->
+          <div id="tab-upload" class="tab-panel" style="display:none">
+            <p class="transcribe-intro">Upload a phone call recording or voice memo. Works with any audio file recorded on your device.</p>
+            <div class="upload-zone" id="upload-zone">
+              <div class="upload-icon">⬆</div>
+              <div class="upload-label">Drop audio file here or click to browse</div>
+              <div class="upload-hint">MP3, M4A, WAV, OGG · up to 20MB</div>
+              <input type="file" id="audio-file-input" accept=".mp3,.m4a,.wav,.ogg,.webm,audio/*" style="display:none">
+            </div>
+            <div id="file-selected" style="display:none" class="file-selected-bar">
+              <span id="file-name-label"></span>
+              <button onclick="clearAudioFile()" class="btn btn-ghost btn-sm">✕ Clear</button>
+            </div>
+          </div>
+
+          <!-- TAB: PASTE -->
+          <div id="tab-paste" class="tab-panel" style="display:none">
+            <p class="transcribe-intro">Paste the meeting transcript from Zoom, Teams, Otter.ai, or any transcription tool. AI extracts all four responses automatically.</p>
+            <textarea id="paste-transcript" style="min-height:160px;font-family:sans-serif;font-size:0.82rem;width:100%;padding:8px 10px;border:1.5px solid var(--dr-border);border-radius:6px;resize:vertical" placeholder="Paste your transcript here…"></textarea>
+          </div>
+
+          <!-- PROCESSING -->
+          <div id="transcribe-step-processing" style="display:none;text-align:center;padding:24px 0">
+            <div class="transcribe-spinner"></div>
+            <div id="transcribe-status" style="margin-top:14px;font-family:sans-serif;font-size:0.85rem;color:var(--dr-muted)">Processing…</div>
+          </div>
+
+          <!-- POST-EXTRACT: done banner + transcript -->
+          <div id="capture-done-state" style="display:none">
+            <div class="capture-done-banner">
+              <span style="font-size:1rem">✓</span>
+              <span>Responses pre-filled from interview — review and edit below, then save.</span>
+            </div>
+            <div class="transcript-preview">
+              <div class="transcript-toggle" onclick="toggleTranscript()">📄 View source transcript <span id="transcript-arrow">▼</span></div>
+              <div id="transcript-text" style="display:none"></div>
+            </div>
+          </div>
+
+        </div>
+        <div class="capture-section-footer">
+          <button class="btn btn-ghost btn-sm" onclick="toggleCaptureSection()">Close</button>
+          <button class="btn btn-primary btn-sm" id="extract-btn" onclick="runExtraction()">→ Extract Responses</button>
+        </div>
+      </div>
+
+      <!-- Q1–Q4 (always visible — interviewer reference + data entry) -->
       <div class="form-group">
         <div class="q-label"><div class="q-num">1</div><div class="q-title">Felt Needs</div></div>
         <div class="q-desc">"What topics would you most want to learn from other key missional parishes around the country?"</div>
@@ -502,85 +610,6 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeEditDetails()">Cancel</button>
       <button class="btn btn-primary" onclick="saveDetails()">Save Details</button>
-    </div>
-  </div>
-</div>
-
-<!-- CAPTURE INTERVIEW MODAL -->
-<div class="modal-overlay" id="transcribe-modal">
-  <div class="modal" style="max-width:700px">
-    <div class="modal-header">
-      <div><h3>🎙 Capture Interview</h3><p id="transcribe-subtitle"></p></div>
-      <button class="modal-close" onclick="closeTranscribe()">✕</button>
-    </div>
-    <div class="modal-body">
-
-      <!-- INPUT TABS -->
-      <div class="input-tabs" id="input-tabs">
-        <button class="input-tab active" onclick="switchInputTab('record',this)">⏺ Record</button>
-        <button class="input-tab" onclick="switchInputTab('upload',this)">⬆ Upload File</button>
-        <button class="input-tab" onclick="switchInputTab('paste',this)">📋 Paste Transcript</button>
-      </div>
-
-      <!-- TAB: RECORD -->
-      <div id="tab-record" class="tab-panel">
-        <p class="transcribe-intro">Record the interview directly — ideal for in-person conversations. Tap the button to start, tap again to stop.</p>
-        <div class="record-centre">
-          <button class="record-btn" id="record-btn" onclick="toggleRecording()" type="button">
-            <span class="record-icon">⏺</span>
-            <span class="record-label">Tap to Record</span>
-          </button>
-          <div class="record-timer" id="record-timer" style="display:none">00:00</div>
-          <p class="record-hint" id="record-hint">Recording captures everything — AI extracts the four responses</p>
-        </div>
-      </div>
-
-      <!-- TAB: UPLOAD -->
-      <div id="tab-upload" class="tab-panel" style="display:none">
-        <p class="transcribe-intro">Upload a phone call recording or voice memo. Works with any audio file recorded on your device.</p>
-        <div class="upload-zone" id="upload-zone">
-          <div class="upload-icon">⬆</div>
-          <div class="upload-label">Drop audio file here or click to browse</div>
-          <div class="upload-hint">MP3, M4A, WAV, OGG · up to 20MB</div>
-          <input type="file" id="audio-file-input" accept=".mp3,.m4a,.wav,.ogg,.webm,audio/*" style="display:none">
-        </div>
-        <div id="file-selected" style="display:none" class="file-selected-bar">
-          <span id="file-name-label"></span>
-          <button onclick="clearAudioFile()" class="btn btn-ghost btn-sm">✕ Clear</button>
-        </div>
-      </div>
-
-      <!-- TAB: PASTE -->
-      <div id="tab-paste" class="tab-panel" style="display:none">
-        <p class="transcribe-intro">Paste the meeting transcript from Zoom, Teams, Otter.ai, or any transcription tool. AI extracts all four responses automatically.</p>
-        <textarea id="paste-transcript" style="min-height:200px;font-family:sans-serif;font-size:0.82rem" placeholder="Paste your transcript here…"></textarea>
-      </div>
-
-      <!-- PROCESSING -->
-      <div id="transcribe-step-processing" style="display:none;text-align:center;padding:32px 0">
-        <div class="transcribe-spinner"></div>
-        <div id="transcribe-status" style="margin-top:16px;font-family:sans-serif;font-size:0.87rem;color:var(--dr-muted)">Processing…</div>
-      </div>
-
-      <!-- REVIEW -->
-      <div id="transcribe-step-review" style="display:none">
-        <div class="transcript-preview">
-          <div class="transcript-toggle" onclick="toggleTranscript()">📄 View source transcript <span id="transcript-arrow">▼</span></div>
-          <div id="transcript-text" style="display:none"></div>
-        </div>
-        <p class="transcribe-intro">Review and edit the extracted responses before saving:</p>
-        <div class="form-group"><div class="q-label"><div class="q-num">1</div><div class="q-title">Felt Needs</div></div><textarea id="t-q1" style="min-height:70px"></textarea></div>
-        <div class="form-group"><div class="q-label"><div class="q-num">2</div><div class="q-title">Your Strengths</div></div><textarea id="t-q2" style="min-height:70px"></textarea></div>
-        <div class="form-group"><div class="q-label"><div class="q-num">3</div><div class="q-title">Current Challenges</div></div><textarea id="t-q3" style="min-height:70px"></textarea></div>
-        <div class="form-group"><div class="q-label"><div class="q-num">4</div><div class="q-title">Future Dreams</div></div><textarea id="t-q4" style="min-height:70px"></textarea></div>
-        <div class="form-group"><label>Notes <span class="opt">(internal, not in Brent's summary)</span></label><textarea id="t-notes" style="min-height:50px"></textarea></div>
-      </div>
-
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeTranscribe()">Cancel</button>
-      <button class="btn btn-primary" id="extract-btn" onclick="runExtraction()">→ Extract Responses</button>
-      <button class="btn btn-primary" id="apply-transcription-btn" onclick="applyTranscription()" style="display:none">✓ Save Responses</button>
     </div>
   </div>
 </div>
@@ -692,7 +721,7 @@ async function importParishes() {
 }
 
 // ── SURVEY MODAL ──────────────────────────────────────────────────────────────
-function openSurvey(id) {
+function openSurvey(id, withCapture = false) {
   const p = parishes.find(x => x.id === id);
   if (!p) return;
   editingId = id;
@@ -705,11 +734,19 @@ function openSurvey(id) {
   document.getElementById('q3').value = p.q3||'';
   document.getElementById('q4').value = p.q4||'';
   document.getElementById('q-notes').value = p.notes||'';
+  // Reset capture section
+  resetCaptureSection();
   document.getElementById('survey-modal').classList.add('open');
-  setTimeout(() => document.getElementById('q1').focus(), 80);
+  if (withCapture) {
+    document.getElementById('capture-section').style.display = '';
+    // Scroll to top of modal body
+    setTimeout(() => { document.getElementById('capture-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 80);
+  }
 }
 
 function closeModal() {
+  // Stop any recording in progress
+  if (recorder && recorder.state === 'recording') { recorder.stop(); clearInterval(timerInterval); }
   document.getElementById('survey-modal').classList.remove('open');
   editingId = null;
 }
@@ -808,7 +845,7 @@ function renderCards() {
           <button class="btn btn-gold btn-sm" onclick="openSurvey('${p.id}')">
             ${p.status === 'not-started' ? '📝 Enter' : '✏️ Edit'}
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="openTranscribe('${p.id}')" title="Capture interview">🎙</button>
+          <button class="btn btn-ghost btn-sm" onclick="openSurvey('${p.id}', true)" title="Capture interview">🎙</button>
           <button class="btn btn-ghost btn-sm" onclick="openEditDetails('${p.id}')" title="Edit parish details">⚙</button>
           <button class="btn btn-danger btn-sm" onclick="removeParish('${p.id}')">✕</button>
         </div>
@@ -889,42 +926,39 @@ function showToast(msg, type='success') {
 
 document.getElementById('survey-modal').addEventListener('click', e => { if (e.target.id==='survey-modal') closeModal(); });
 document.getElementById('details-modal').addEventListener('click', e => { if (e.target.id==='details-modal') closeEditDetails(); });
-document.getElementById('transcribe-modal').addEventListener('click', e => { if (e.target.id==='transcribe-modal') closeTranscribe(); });
-document.addEventListener('keydown', e => { if (e.key==='Escape') { closeModal(); closeEditDetails(); closeTranscribe(); } });
+document.addEventListener('keydown', e => { if (e.key==='Escape') { closeModal(); closeEditDetails(); } });
 
-// ── CAPTURE INTERVIEW ─────────────────────────────────────────────────────────
-let transcribingId = null;
+// ── CAPTURE INTERVIEW (inline in survey modal) ────────────────────────────────
 let activeTab = 'record';
 let recorder = null;
 let recordChunks = [];
 let timerInterval = null;
 let recordSeconds = 0;
 
-function openTranscribe(id) {
-  const p = parishes.find(x => x.id === id);
-  if (!p) return;
-  transcribingId = id;
-  document.getElementById('transcribe-subtitle').textContent = p.name;
-  resetCaptureModal();
-  document.getElementById('transcribe-modal').classList.add('open');
+function toggleCaptureSection() {
+  const section = document.getElementById('capture-section');
+  const isOpen = section.style.display !== 'none';
+  if (isOpen) {
+    // Close — stop any recording
+    if (recorder && recorder.state === 'recording') { recorder.stop(); clearInterval(timerInterval); }
+    section.style.display = 'none';
+    resetCaptureSection();
+  } else {
+    resetCaptureSection();
+    section.style.display = '';
+    section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
-function closeTranscribe() {
-  if (recorder && recorder.state === 'recording') recorder.stop();
-  clearInterval(timerInterval);
-  document.getElementById('transcribe-modal').classList.remove('open');
-  transcribingId = null;
-}
-
-function resetCaptureModal() {
+function resetCaptureSection() {
+  // Show input UI, hide processing and done state
   document.getElementById('input-tabs').style.display = '';
   document.getElementById('tab-record').style.display = '';
   document.getElementById('tab-upload').style.display = 'none';
   document.getElementById('tab-paste').style.display = 'none';
   document.getElementById('transcribe-step-processing').style.display = 'none';
-  document.getElementById('transcribe-step-review').style.display = 'none';
+  document.getElementById('capture-done-state').style.display = 'none';
   document.getElementById('extract-btn').style.display = '';
-  document.getElementById('apply-transcription-btn').style.display = 'none';
   // Reset record button
   const btn = document.getElementById('record-btn');
   btn.className = 'record-btn';
@@ -1000,9 +1034,9 @@ async function toggleRecording() {
 }
 
 async function runExtraction() {
-  const p = parishes.find(x => x.id === transcribingId);
+  const p = parishes.find(x => x.id === editingId);
 
-  // Hide input area, show processing
+  // Hide input UI, show processing
   document.getElementById('input-tabs').style.display = 'none';
   ['tab-record','tab-upload','tab-paste'].forEach(id => document.getElementById(id).style.display = 'none');
   document.getElementById('extract-btn').style.display = 'none';
@@ -1010,23 +1044,24 @@ async function runExtraction() {
 
   try {
     let requestBody;
+    let sourceTranscript = '';
 
     if (activeTab === 'paste') {
-      const transcript = document.getElementById('paste-transcript').value.trim();
-      if (!transcript) { resetCaptureModal(); showToast('Please paste a transcript first', 'error'); return; }
+      sourceTranscript = document.getElementById('paste-transcript').value.trim();
+      if (!sourceTranscript) { resetCaptureSection(); showToast('Please paste a transcript first', 'error'); return; }
       document.getElementById('transcribe-status').textContent = 'Extracting responses from transcript…';
-      requestBody = { transcript, parishName: p?.name || '', mode: 'text' };
+      requestBody = { transcript: sourceTranscript, parishName: p?.name || '', mode: 'text' };
 
     } else if (activeTab === 'upload') {
       const file = document.getElementById('audio-file-input').files[0];
-      if (!file) { resetCaptureModal(); showToast('Please select a file first', 'error'); return; }
+      if (!file) { resetCaptureSection(); showToast('Please select a file first', 'error'); return; }
       document.getElementById('transcribe-status').textContent = 'Reading audio file…';
       const base64 = await blobToBase64(file);
       document.getElementById('transcribe-status').textContent = 'Transcribing audio… this may take 30–60 seconds';
       requestBody = { audioBase64: base64, mimeType: file.type, fileName: file.name, parishName: p?.name || '' };
 
     } else { // record
-      if (!recordChunks.length) { resetCaptureModal(); showToast('Please record something first', 'error'); return; }
+      if (!recordChunks.length) { resetCaptureSection(); showToast('Please record something first', 'error'); return; }
       document.getElementById('transcribe-status').textContent = 'Transcribing recording…';
       const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
       const blob = new Blob(recordChunks, { type: mimeType });
@@ -1048,21 +1083,24 @@ async function runExtraction() {
     document.getElementById('transcribe-status').textContent = 'Extracting responses…';
     const data = await response.json();
 
-    // Show review
+    // Fill Q1–Q4 fields directly
+    if (data.q1) document.getElementById('q1').value = data.q1;
+    if (data.q2) document.getElementById('q2').value = data.q2;
+    if (data.q3) document.getElementById('q3').value = data.q3;
+    if (data.q4) document.getElementById('q4').value = data.q4;
+    if (data.notes) document.getElementById('q-notes').value = data.notes;
+
+    // Show done state with transcript
     document.getElementById('transcribe-step-processing').style.display = 'none';
-    document.getElementById('transcribe-step-review').style.display = '';
-    document.getElementById('apply-transcription-btn').style.display = '';
-    document.getElementById('transcript-text').textContent = data.transcript || requestBody.transcript || '(transcript not available)';
+    document.getElementById('capture-done-state').style.display = '';
+    document.getElementById('transcript-text').textContent = data.transcript || sourceTranscript || '(transcript not available)';
     document.getElementById('transcript-arrow').textContent = '▼';
     document.getElementById('transcript-text').style.display = 'none';
-    document.getElementById('t-q1').value = data.q1 || '';
-    document.getElementById('t-q2').value = data.q2 || '';
-    document.getElementById('t-q3').value = data.q3 || '';
-    document.getElementById('t-q4').value = data.q4 || '';
-    document.getElementById('t-notes').value = data.notes || '';
+
+    showToast('✓ Responses pre-filled — review and save when ready');
 
   } catch (err) {
-    resetCaptureModal();
+    resetCaptureSection();
     showToast('Error: ' + err.message, 'error');
   }
 }
@@ -1083,24 +1121,9 @@ function toggleTranscript() {
   else { el.style.display = 'none'; arrow.textContent = '▼'; }
 }
 
-async function applyTranscription() {
-  const p = parishes.find(x => x.id === transcribingId);
-  if (!p) return;
-  const q1 = document.getElementById('t-q1').value.trim();
-  const q2 = document.getElementById('t-q2').value.trim();
-  const q3 = document.getElementById('t-q3').value.trim();
-  const q4 = document.getElementById('t-q4').value.trim();
-  const notes = document.getElementById('t-notes').value.trim();
-  const answered = [q1,q2,q3,q4].filter(Boolean).length;
-  const status = answered === 0 ? 'not-started' : answered < 4 ? 'in-progress' : 'complete';
-  setSync('syncing', 'Saving…');
-  const { error } = await db.from(TABLE).update({ q1, q2, q3, q4, notes, status }).eq('id', transcribingId);
-  if (error) { setSync('error', 'Save failed'); showToast('Could not save — try again', 'error'); return; }
-  Object.assign(p, { q1, q2, q3, q4, notes, status });
-  setSync('ok', 'Connected');
-  showToast('Responses saved ✓');
-  closeTranscribe();
-  renderAll();
+function clearAudioFile() {
+  document.getElementById('audio-file-input').value = '';
+  document.getElementById('file-selected').style.display = 'none';
 }
 
 // Upload zone interactions
