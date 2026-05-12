@@ -227,6 +227,23 @@
     body { background: white; }
   }
 
+  /* MIC BUTTONS */
+  .q-label { position: relative; }
+  .mic-btn {
+    position: absolute; right: 0; top: 0;
+    background: none; border: 1.5px solid var(--dr-border); border-radius: 6px;
+    padding: 3px 8px; cursor: pointer; font-size: 0.8rem; color: var(--dr-muted);
+    font-family: sans-serif; transition: all 0.15s; display: flex; align-items: center; gap: 4px;
+  }
+  .mic-btn:hover { border-color: var(--dr-gold); color: var(--dr-navy); background: var(--dr-amber-light); }
+  .mic-btn.recording {
+    border-color: var(--dr-red); color: var(--dr-red); background: var(--dr-red-light);
+    animation: mic-pulse 1s ease-in-out infinite;
+  }
+  .mic-btn.transcribing { border-color: var(--dr-amber); color: var(--dr-amber); background: var(--dr-amber-light); }
+  @keyframes mic-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+  .mic-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
+
   /* TRANSCRIPTION */
   .upload-zone {
     border: 2px dashed var(--dr-border); border-radius: 10px; padding: 28px 20px;
@@ -406,22 +423,22 @@
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <div class="q-label"><div class="q-num">1</div><div class="q-title">Felt Needs</div></div>
+        <div class="q-label"><div class="q-num">1</div><div class="q-title">Felt Needs</div><button class="mic-btn" id="mic-q1" onclick="toggleMic('q1')" type="button"><span class="mic-dot"></span> <span class="mic-label">Dictate</span></button></div>
         <div class="q-desc">"What topics would you most want to learn from other key missional parishes around the country?"</div>
         <textarea id="q1" placeholder="Enter the parish's response…"></textarea>
       </div>
       <div class="form-group">
-        <div class="q-label"><div class="q-num">2</div><div class="q-title">Your Strengths</div></div>
+        <div class="q-label"><div class="q-num">2</div><div class="q-title">Your Strengths</div><button class="mic-btn" id="mic-q2" onclick="toggleMic('q2')" type="button"><span class="mic-dot"></span> <span class="mic-label">Dictate</span></button></div>
         <div class="q-desc">"What do you think is going really well in your parish right now that might be of real interest to others?"</div>
         <textarea id="q2" placeholder="Enter the parish's response…"></textarea>
       </div>
       <div class="form-group">
-        <div class="q-label"><div class="q-num">3</div><div class="q-title">Current Challenges</div></div>
+        <div class="q-label"><div class="q-num">3</div><div class="q-title">Current Challenges</div><button class="mic-btn" id="mic-q3" onclick="toggleMic('q3')" type="button"><span class="mic-dot"></span> <span class="mic-label">Dictate</span></button></div>
         <div class="q-desc">"What's not going as well as you'd like — that you'd love to see what other parishes are doing in that area?"</div>
         <textarea id="q3" placeholder="Enter the parish's response…"></textarea>
       </div>
       <div class="form-group">
-        <div class="q-label"><div class="q-num">4</div><div class="q-title">Future Dreams</div></div>
+        <div class="q-label"><div class="q-num">4</div><div class="q-title">Future Dreams</div><button class="mic-btn" id="mic-q4" onclick="toggleMic('q4')" type="button"><span class="mic-dot"></span> <span class="mic-label">Dictate</span></button></div>
         <div class="q-desc">"In the next 2–3 years, what are you dreaming about that you'd love to get input on from brother priests?"</div>
         <textarea id="q4" placeholder="Enter the parish's response…"></textarea>
       </div>
@@ -963,6 +980,88 @@ uploadZone.addEventListener('drop', e => {
     document.getElementById('transcribe-btn').disabled = false;
   }
 });
+
+// ── MIC DICTATION ─────────────────────────────────────────────────────────────
+let activeRecorder = null;
+let activeFieldId = null;
+let audioChunks = [];
+
+async function toggleMic(fieldId) {
+  // If already recording this field — stop
+  if (activeRecorder && activeFieldId === fieldId) {
+    activeRecorder.stop();
+    return;
+  }
+  // If recording a different field — stop that first
+  if (activeRecorder) activeRecorder.stop();
+
+  const btn = document.getElementById('mic-' + fieldId);
+  const label = btn.querySelector('.mic-label');
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    activeFieldId = fieldId;
+
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+    activeRecorder = new MediaRecorder(stream, { mimeType });
+
+    activeRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+
+    activeRecorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      btn.className = 'mic-btn transcribing';
+      label.textContent = 'Transcribing…';
+
+      try {
+        const blob = new Blob(audioChunks, { type: mimeType });
+        const base64 = await new Promise((res, rej) => {
+          const reader = new FileReader();
+          reader.onload = e => res(e.target.result.split(',')[1]);
+          reader.onerror = rej;
+          reader.readAsDataURL(blob);
+        });
+
+        const response = await fetch('/api/transcribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            audioBase64: base64,
+            mimeType,
+            fileName: 'voice.' + (mimeType === 'audio/webm' ? 'webm' : 'm4a'),
+            mode: 'field',
+          }),
+        });
+
+        if (!response.ok) throw new Error('Transcription failed');
+        const data = await response.json();
+
+        const textarea = document.getElementById(fieldId);
+        const existing = textarea.value.trim();
+        textarea.value = existing ? existing + '\n\n' + data.transcript : data.transcript;
+        textarea.focus();
+        showToast('Transcribed ✓');
+      } catch (err) {
+        showToast('Could not transcribe — try again', 'error');
+      }
+
+      btn.className = 'mic-btn';
+      label.textContent = 'Dictate';
+      activeRecorder = null;
+      activeFieldId = null;
+    };
+
+    activeRecorder.start();
+    btn.className = 'mic-btn recording';
+    label.textContent = 'Stop';
+  } catch (err) {
+    if (err.name === 'NotAllowedError') {
+      showToast('Microphone access denied — please allow it in your browser', 'error');
+    } else {
+      showToast('Could not start recording: ' + err.message, 'error');
+    }
+  }
+}
 
 // ── EDIT DETAILS ──────────────────────────────────────────────────────────────
 let editingDetailsId = null;
