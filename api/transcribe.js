@@ -6,34 +6,43 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured in Vercel environment variables' });
 
-  const { audioBase64, mimeType, fileName, parishName, mode } = req.body || {};
-  if (!audioBase64) return res.status(400).json({ error: 'No audio data provided' });
+  const { audioBase64, mimeType, fileName, parishName, mode, transcript: pastedTranscript } = req.body || {};
 
   try {
-    // ── 1. Transcribe with Whisper ────────────────────────────────────────────
-    const buffer = Buffer.from(audioBase64, 'base64');
-    const blob = new Blob([buffer], { type: mimeType || 'audio/mpeg' });
+    let transcript;
 
-    const formData = new FormData();
-    formData.append('file', blob, fileName || 'interview.mp3');
-    formData.append('model', 'whisper-1');
-    formData.append('language', 'en');
+    // ── Text mode — pasted transcript, skip Whisper entirely ─────────────────
+    if (mode === 'text') {
+      if (!pastedTranscript) return res.status(400).json({ error: 'No transcript provided' });
+      transcript = pastedTranscript;
+    } else {
+      // ── 1. Transcribe with Whisper ──────────────────────────────────────────
+      if (!audioBase64) return res.status(400).json({ error: 'No audio data provided' });
 
-    const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}` },
-      body: formData,
-    });
+      const buffer = Buffer.from(audioBase64, 'base64');
+      const blob = new Blob([buffer], { type: mimeType || 'audio/mpeg' });
 
-    if (!whisperRes.ok) {
-      const err = await whisperRes.json().catch(() => ({}));
-      return res.status(500).json({ error: 'Whisper transcription failed', detail: err });
+      const formData = new FormData();
+      formData.append('file', blob, fileName || 'interview.mp3');
+      formData.append('model', 'whisper-1');
+      formData.append('language', 'en');
+
+      const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}` },
+        body: formData,
+      });
+
+      if (!whisperRes.ok) {
+        const err = await whisperRes.json().catch(() => ({}));
+        return res.status(500).json({ error: 'Whisper transcription failed', detail: err });
+      }
+
+      ({ text: transcript } = await whisperRes.json());
+
+      // Field mode — just return the transcript, skip GPT extraction
+      if (mode === 'field') return res.json({ transcript });
     }
-
-    const { text: transcript } = await whisperRes.json();
-
-    // Field mode — just return the transcript, skip GPT extraction
-    if (mode === 'field') return res.json({ transcript });
 
     // ── 2. Extract Q1–Q4 with GPT-4o-mini ────────────────────────────────────
     const extractRes = await fetch('https://api.openai.com/v1/chat/completions', {
