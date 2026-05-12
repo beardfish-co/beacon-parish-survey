@@ -611,7 +611,7 @@
         </div>
         <div class="capture-section-footer">
           <button class="btn btn-ghost btn-sm" onclick="toggleCaptureSection()">Close</button>
-          <button class="btn btn-primary btn-sm" id="extract-btn" onclick="runExtraction()">→ Extract Responses</button>
+          <button class="btn btn-ghost btn-sm" id="extract-btn" onclick="runExtraction()">↺ Re-extract</button>
         </div>
       </div>
 
@@ -1004,7 +1004,7 @@ async function toggleRecording() {
     btn.className = 'record-btn done';
     btn.querySelector('.record-icon').textContent = '✓';
     btn.querySelector('.record-label').textContent = 'Recording saved';
-    document.getElementById('record-hint').textContent = 'Click "Extract Responses" when ready';
+    document.getElementById('record-hint').textContent = 'Processing your recording…';
     return;
   }
 
@@ -1015,7 +1015,7 @@ async function toggleRecording() {
     const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
     recorder = new MediaRecorder(stream, { mimeType });
     recorder.ondataavailable = e => { if (e.data.size > 0) recordChunks.push(e.data); };
-    recorder.onstop = () => stream.getTracks().forEach(t => t.stop());
+    recorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); setTimeout(() => runExtraction(), 150); };
     recorder.start();
 
     btn.className = 'record-btn recording';
@@ -1151,6 +1151,7 @@ document.getElementById('audio-file-input').addEventListener('change', e => {
   }
   document.getElementById('file-name-label').textContent = `${file.name} (${mb} MB)`;
   document.getElementById('file-selected').style.display = 'flex';
+  setTimeout(() => runExtraction(), 300);
 });
 const uploadZone = document.getElementById('upload-zone');
 uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
@@ -1164,6 +1165,14 @@ uploadZone.addEventListener('drop', e => {
   Object.defineProperty(document.getElementById('audio-file-input'), 'files', { value: e.dataTransfer.files, configurable: true });
   document.getElementById('file-name-label').textContent = `${file.name} (${mb} MB)`;
   document.getElementById('file-selected').style.display = 'flex';
+  setTimeout(() => runExtraction(), 300);
+});
+
+// Auto-extract on paste
+let pasteDebounce;
+document.getElementById('paste-transcript').addEventListener('paste', () => {
+  clearTimeout(pasteDebounce);
+  pasteDebounce = setTimeout(() => runExtraction(), 800);
 });
 
 // ── EDIT DETAILS ──────────────────────────────────────────────────────────────
