@@ -551,14 +551,14 @@
 
           <!-- INPUT TABS -->
           <div class="input-tabs" id="input-tabs">
-            <button class="input-tab active" onclick="switchInputTab('record',this)">⏺ Record</button>
-            <button class="input-tab" onclick="switchInputTab('upload',this)">⬆ Upload File</button>
-            <button class="input-tab" onclick="switchInputTab('paste',this)">📋 Paste Transcript</button>
+            <button class="input-tab active" onclick="switchInputTab('record',this)">⏺ In Person</button>
+            <button class="input-tab" onclick="switchInputTab('upload',this)">⬆ Phone Call</button>
+            <button class="input-tab" onclick="switchInputTab('paste',this)">💬 Zoom / Teams</button>
           </div>
 
           <!-- TAB: RECORD -->
           <div id="tab-record" class="tab-panel">
-            <p class="transcribe-intro">Record the interview directly — ideal for in-person conversations. Tap the button to start, tap again to stop.</p>
+            <p class="transcribe-intro">Tap the button below to record the conversation live. <strong>Requires an internet connection to save.</strong> No signal? Use your phone's <strong>Voice Memos</strong> app (iPhone) or <strong>Recorder</strong> app (Android) to capture the conversation offline, then come back and use the Phone Call tab to upload the file when you're connected.</p>
             <div class="record-centre">
               <button class="record-btn" id="record-btn" onclick="toggleRecording()" type="button">
                 <span class="record-icon">⏺</span>
@@ -571,7 +571,7 @@
 
           <!-- TAB: UPLOAD -->
           <div id="tab-upload" class="tab-panel" style="display:none">
-            <p class="transcribe-intro">Upload a phone call recording or voice memo. Works with any audio file recorded on your device.</p>
+            <p class="transcribe-intro">Before the call, start a recording using <strong>Voice Memos</strong> (iPhone) or <strong>Recorder</strong> (Android). Once the call is finished, upload that file here.</p>
             <div class="upload-zone" id="upload-zone">
               <div class="upload-icon">⬆</div>
               <div class="upload-label">Drop audio file here or click to browse</div>
@@ -586,7 +586,7 @@
 
           <!-- TAB: PASTE -->
           <div id="tab-paste" class="tab-panel" style="display:none">
-            <p class="transcribe-intro">Paste the meeting transcript from Zoom, Teams, Otter.ai, or any transcription tool. AI extracts all four responses automatically.</p>
+            <p class="transcribe-intro">Make sure transcription is turned on before your meeting starts — in <strong>Zoom</strong> go to Settings → Recording → enable Transcripts, or in <strong>Teams</strong> click More → Start Transcription during the call. Then copy and paste the transcript below.</p>
             <textarea id="paste-transcript" style="min-height:160px;font-family:sans-serif;font-size:0.82rem;width:100%;padding:8px 10px;border:1.5px solid var(--dr-border);border-radius:6px;resize:vertical" placeholder="Paste your transcript here…"></textarea>
           </div>
 
