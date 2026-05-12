@@ -226,6 +226,32 @@
     header, .nav-tabs, .export-bar, .btn, .modal-overlay, .filter-bar, .progress-banner { display: none !important; }
     body { background: white; }
   }
+
+  /* TRANSCRIPTION */
+  .upload-zone {
+    border: 2px dashed var(--dr-border); border-radius: 10px; padding: 28px 20px;
+    text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--dr-gold); background: var(--dr-amber-light); }
+  .upload-icon { font-size: 2rem; margin-bottom: 6px; }
+  .upload-label { font-family: sans-serif; font-size: 0.88rem; font-weight: bold; color: var(--dr-navy); }
+  .upload-hint { font-family: sans-serif; font-size: 0.75rem; color: var(--dr-muted); margin-top: 4px; line-height: 1.5; }
+  .file-selected-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--dr-green-light); border: 1px solid var(--dr-green);
+    border-radius: 7px; padding: 8px 12px; margin-top: 8px;
+    font-family: sans-serif; font-size: 0.82rem; color: var(--dr-green);
+  }
+  .transcribe-spinner {
+    width: 36px; height: 36px; border: 3px solid var(--dr-border);
+    border-top-color: var(--dr-gold); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .transcript-preview { background: var(--dr-cream); border: 1px solid var(--dr-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; }
+  .transcript-toggle { font-family: sans-serif; font-size: 0.81rem; cursor: pointer; color: var(--dr-blue); user-select: none; }
+  #transcript-text { font-family: sans-serif; font-size: 0.79rem; color: var(--dr-muted); line-height: 1.6; margin-top: 8px; white-space: pre-wrap; max-height: 160px; overflow-y: auto; }
+  .transcribe-intro { font-family: sans-serif; font-size: 0.81rem; color: var(--dr-muted); margin: 0 0 10px; }
 </style>
 </head>
 <body>
@@ -442,6 +468,56 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeEditDetails()">Cancel</button>
       <button class="btn btn-primary" onclick="saveDetails()">Save Details</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="transcribe-modal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div><h3>🎙 Transcribe Interview</h3><p id="transcribe-subtitle"></p></div>
+      <button class="modal-close" onclick="closeTranscribe()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Step 1: Upload -->
+      <div id="transcribe-step-upload">
+        <p class="transcribe-intro">Upload a recording of the interview or a short voice summary. Claude will transcribe it and extract responses to all four questions for your review.</p>
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-icon">🎙</div>
+          <div class="upload-label">Drop audio file here or click to browse</div>
+          <div class="upload-hint">MP3, M4A, WAV, OGG · up to 20MB<br>Tip: a 3–5 min voice summary after the call works perfectly</div>
+          <input type="file" id="audio-file-input" accept=".mp3,.m4a,.wav,.ogg,.webm,audio/*" style="display:none">
+        </div>
+        <div id="file-selected" style="display:none" class="file-selected-bar">
+          <span id="file-name-label"></span>
+          <button onclick="clearAudioFile()" class="btn btn-ghost btn-sm">✕ Clear</button>
+        </div>
+        <button class="btn btn-primary" id="transcribe-btn" onclick="runTranscription()" style="margin-top:12px;width:100%" disabled>
+          🎙 Transcribe &amp; Extract Responses
+        </button>
+      </div>
+      <!-- Step 2: Processing -->
+      <div id="transcribe-step-processing" style="display:none;text-align:center;padding:28px 0">
+        <div class="transcribe-spinner"></div>
+        <div id="transcribe-status" style="margin-top:14px;font-family:sans-serif;font-size:0.87rem;color:var(--dr-muted)">Uploading…</div>
+      </div>
+      <!-- Step 3: Review -->
+      <div id="transcribe-step-review" style="display:none">
+        <div class="transcript-preview">
+          <div class="transcript-toggle" onclick="toggleTranscript()">📄 View full transcript <span id="transcript-arrow">▼</span></div>
+          <div id="transcript-text" style="display:none"></div>
+        </div>
+        <p class="transcribe-intro">Review and edit the extracted responses before saving:</p>
+        <div class="form-group"><div class="q-label"><div class="q-num">1</div><div class="q-title">Felt Needs</div></div><textarea id="t-q1" style="min-height:70px"></textarea></div>
+        <div class="form-group"><div class="q-label"><div class="q-num">2</div><div class="q-title">Your Strengths</div></div><textarea id="t-q2" style="min-height:70px"></textarea></div>
+        <div class="form-group"><div class="q-label"><div class="q-num">3</div><div class="q-title">Current Challenges</div></div><textarea id="t-q3" style="min-height:70px"></textarea></div>
+        <div class="form-group"><div class="q-label"><div class="q-num">4</div><div class="q-title">Future Dreams</div></div><textarea id="t-q4" style="min-height:70px"></textarea></div>
+        <div class="form-group"><label>Notes <span class="opt">(internal, not in Brent's summary)</span></label><textarea id="t-notes" style="min-height:50px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeTranscribe()">Cancel</button>
+      <button class="btn btn-primary" id="apply-transcription-btn" onclick="applyTranscription()" style="display:none">✓ Save Responses</button>
     </div>
   </div>
 </div>
@@ -669,6 +745,7 @@ function renderCards() {
           <button class="btn btn-gold btn-sm" onclick="openSurvey('${p.id}')">
             ${p.status === 'not-started' ? '📝 Enter' : '✏️ Edit'}
           </button>
+          <button class="btn btn-ghost btn-sm" onclick="openTranscribe('${p.id}')" title="Transcribe interview recording">🎙</button>
           <button class="btn btn-ghost btn-sm" onclick="openEditDetails('${p.id}')" title="Edit parish details">⚙</button>
           <button class="btn btn-danger btn-sm" onclick="removeParish('${p.id}')">✕</button>
         </div>
@@ -749,7 +826,143 @@ function showToast(msg, type='success') {
 
 document.getElementById('survey-modal').addEventListener('click', e => { if (e.target.id==='survey-modal') closeModal(); });
 document.getElementById('details-modal').addEventListener('click', e => { if (e.target.id==='details-modal') closeEditDetails(); });
-document.addEventListener('keydown', e => { if (e.key==='Escape') { closeModal(); closeEditDetails(); } });
+document.getElementById('transcribe-modal').addEventListener('click', e => { if (e.target.id==='transcribe-modal') closeTranscribe(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape') { closeModal(); closeEditDetails(); closeTranscribe(); } });
+
+// ── TRANSCRIPTION ─────────────────────────────────────────────────────────────
+let transcribingId = null;
+
+function openTranscribe(id) {
+  const p = parishes.find(x => x.id === id);
+  if (!p) return;
+  transcribingId = id;
+  document.getElementById('transcribe-subtitle').textContent = p.name;
+  document.getElementById('transcribe-step-upload').style.display = '';
+  document.getElementById('transcribe-step-processing').style.display = 'none';
+  document.getElementById('transcribe-step-review').style.display = 'none';
+  document.getElementById('apply-transcription-btn').style.display = 'none';
+  document.getElementById('audio-file-input').value = '';
+  document.getElementById('file-selected').style.display = 'none';
+  document.getElementById('transcribe-btn').disabled = true;
+  document.getElementById('transcribe-modal').classList.add('open');
+}
+
+function closeTranscribe() {
+  document.getElementById('transcribe-modal').classList.remove('open');
+  transcribingId = null;
+}
+
+function clearAudioFile() {
+  document.getElementById('audio-file-input').value = '';
+  document.getElementById('file-selected').style.display = 'none';
+  document.getElementById('transcribe-btn').disabled = true;
+}
+
+function toggleTranscript() {
+  const el = document.getElementById('transcript-text');
+  const arrow = document.getElementById('transcript-arrow');
+  if (el.style.display === 'none') { el.style.display = 'block'; arrow.textContent = '▲'; }
+  else { el.style.display = 'none'; arrow.textContent = '▼'; }
+}
+
+async function runTranscription() {
+  const fileInput = document.getElementById('audio-file-input');
+  const file = fileInput.files[0];
+  if (!file) return;
+  const p = parishes.find(x => x.id === transcribingId);
+  document.getElementById('transcribe-step-upload').style.display = 'none';
+  document.getElementById('transcribe-step-processing').style.display = '';
+  document.getElementById('transcribe-status').textContent = 'Reading audio file…';
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    document.getElementById('transcribe-status').textContent = 'Transcribing… this may take 30–60 seconds';
+    const response = await fetch('/api/transcribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ audioBase64: base64, mimeType: file.type, fileName: file.name, parishName: p?.name || '' }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `Server error (${response.status})`);
+    }
+    document.getElementById('transcribe-status').textContent = 'Extracting responses…';
+    const data = await response.json();
+    document.getElementById('transcribe-step-processing').style.display = 'none';
+    document.getElementById('transcribe-step-review').style.display = '';
+    document.getElementById('apply-transcription-btn').style.display = '';
+    document.getElementById('transcript-text').textContent = data.transcript || '(no transcript returned)';
+    document.getElementById('transcript-arrow').textContent = '▼';
+    document.getElementById('transcript-text').style.display = 'none';
+    document.getElementById('t-q1').value = data.q1 || '';
+    document.getElementById('t-q2').value = data.q2 || '';
+    document.getElementById('t-q3').value = data.q3 || '';
+    document.getElementById('t-q4').value = data.q4 || '';
+    document.getElementById('t-notes').value = data.notes || '';
+  } catch (err) {
+    document.getElementById('transcribe-step-processing').style.display = 'none';
+    document.getElementById('transcribe-step-upload').style.display = '';
+    document.getElementById('transcribe-btn').disabled = false;
+    showToast('Transcription error: ' + err.message, 'error');
+  }
+}
+
+async function applyTranscription() {
+  const p = parishes.find(x => x.id === transcribingId);
+  if (!p) return;
+  const q1 = document.getElementById('t-q1').value.trim();
+  const q2 = document.getElementById('t-q2').value.trim();
+  const q3 = document.getElementById('t-q3').value.trim();
+  const q4 = document.getElementById('t-q4').value.trim();
+  const notes = document.getElementById('t-notes').value.trim();
+  const status = (q1||q2||q3||q4) ? 'in-progress' : 'not-started';
+  setSync('syncing', 'Saving…');
+  const { error } = await db.from(TABLE).update({ q1, q2, q3, q4, notes, status }).eq('id', transcribingId);
+  if (error) { setSync('error', 'Save failed'); showToast('Could not save — try again', 'error'); return; }
+  Object.assign(p, { q1, q2, q3, q4, notes, status });
+  setSync('ok', 'Saved');
+  showToast('Interview responses saved ✓');
+  closeTranscribe();
+  renderAll();
+}
+
+// Upload zone interactions
+document.getElementById('upload-zone').addEventListener('click', () => document.getElementById('audio-file-input').click());
+document.getElementById('audio-file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const mb = (file.size / 1024 / 1024).toFixed(1);
+  if (file.size > 20 * 1024 * 1024) {
+    showToast(`File too large (${mb} MB) — please use a file under 20MB`, 'error');
+    document.getElementById('audio-file-input').value = '';
+    return;
+  }
+  document.getElementById('file-name-label').textContent = `${file.name} (${mb} MB)`;
+  document.getElementById('file-selected').style.display = 'flex';
+  document.getElementById('transcribe-btn').disabled = false;
+});
+const uploadZone = document.getElementById('upload-zone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  const dt = e.dataTransfer;
+  if (dt.files[0]) {
+    const input = document.getElementById('audio-file-input');
+    // Simulate file selection
+    const file = dt.files[0];
+    const mb = (file.size / 1024 / 1024).toFixed(1);
+    if (file.size > 20 * 1024 * 1024) { showToast(`File too large (${mb} MB)`, 'error'); return; }
+    Object.defineProperty(input, 'files', { value: dt.files, configurable: true });
+    document.getElementById('file-name-label').textContent = `${file.name} (${mb} MB)`;
+    document.getElementById('file-selected').style.display = 'flex';
+    document.getElementById('transcribe-btn').disabled = false;
+  }
+});
 
 // ── EDIT DETAILS ──────────────────────────────────────────────────────────────
 let editingDetailsId = null;
