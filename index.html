@@ -449,7 +449,6 @@
       <h2>Parishes</h2>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-ghost" onclick="togglePanel('add-panel')">+ Add Parish</button>
-        <button class="btn btn-ghost" onclick="togglePanel('import-panel')">⬆ Import List</button>
       </div>
     </div>
 
@@ -493,21 +492,6 @@
       <div style="display:flex;gap:8px">
         <button class="btn btn-primary" onclick="addParish()">Add Parish</button>
         <button class="btn btn-ghost" onclick="togglePanel('add-panel')">Cancel</button>
-      </div>
-    </div>
-
-    <!-- IMPORT -->
-    <div class="collapsible-panel" id="import-panel">
-      <h3>Import Parish List</h3>
-      <div class="import-format">
-        <strong>Columns (tab or comma separated):</strong>
-        Parish Name · Priest · Regional Lead · Diocese · Coach · Coach Status (current/historical)<br>
-        <em>Example:</em> St Patrick's Mentone, Fr. Chris Ryan, Jonathan Stephens (WA), Archdiocese of Melbourne, Shanon Stallard, current
-      </div>
-      <div class="form-group"><label>Paste data</label><textarea id="import-data" style="min-height:110px;font-family:monospace;font-size:0.78rem" placeholder="Paste rows here…"></textarea></div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-primary" onclick="importParishes()">Import</button>
-        <button class="btn btn-ghost" onclick="togglePanel('import-panel')">Cancel</button>
       </div>
     </div>
 
@@ -792,28 +776,6 @@ async function removeParish(id) {
   showToast('Parish removed');
 }
 
-async function importParishes() {
-  const raw = document.getElementById('import-data').value.trim();
-  if (!raw) { showToast('Nothing to import', 'error'); return; }
-  const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l && !l.startsWith('#'));
-  const rows = [];
-  lines.forEach(line => {
-    const cols = line.includes('\t') ? line.split('\t') : line.split(',');
-    const c = cols.map(x => x.trim().replace(/^"|"$/g,''));
-    const [name,priest,rl,diocese,coach,csRaw] = c;
-    if (!name || !priest) return;
-    const coachStatus = (csRaw||'').toLowerCase().includes('hist') ? 'historical' : 'current';
-    rows.push({ name, priest, regional_lead: rl||'', diocese: diocese||'', coach: coach||'', coach_status: coach ? coachStatus : '', q1:'',q2:'',q3:'',q4:'',notes:'',status:'not-started' });
-  });
-  if (!rows.length) { showToast('No valid rows found', 'error'); return; }
-  setSync('syncing', 'Importing…');
-  const { error } = await db.from(TABLE).insert(rows);
-  setSync('ok', 'Connected');
-  if (error) { showToast('Error importing parishes', 'error'); return; }
-  document.getElementById('import-data').value='';
-  togglePanel('import-panel');
-  showToast(`✓ Imported ${rows.length} parishes`);
-}
 
 // ── SURVEY MODAL ──────────────────────────────────────────────────────────────
 function openSurvey(id, withCapture = false) {
@@ -995,7 +957,7 @@ function renderSummary() {
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function togglePanel(id) {
-  ['add-panel','import-panel'].forEach(p => { if (p!==id) document.getElementById(p).classList.remove('open'); });
+  ['add-panel'].forEach(p => { if (p!==id) document.getElementById(p).classList.remove('open'); });
   document.getElementById(id).classList.toggle('open');
 }
 
