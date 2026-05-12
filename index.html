@@ -227,24 +227,40 @@
     body { background: white; }
   }
 
-  /* MIC BUTTONS */
-  .q-label { position: relative; }
-  .mic-btn {
-    position: absolute; right: 0; top: 0;
-    background: none; border: 1.5px solid var(--dr-border); border-radius: 6px;
-    padding: 3px 8px; cursor: pointer; font-size: 0.8rem; color: var(--dr-muted);
-    font-family: sans-serif; transition: all 0.15s; display: flex; align-items: center; gap: 4px;
+  /* CAPTURE MODAL — INPUT TABS */
+  .input-tabs {
+    display: flex; gap: 0; margin-bottom: 18px;
+    border: 1.5px solid var(--dr-border); border-radius: 8px; overflow: hidden;
   }
-  .mic-btn:hover { border-color: var(--dr-gold); color: var(--dr-navy); background: var(--dr-amber-light); }
-  .mic-btn.recording {
-    border-color: var(--dr-red); color: var(--dr-red); background: var(--dr-red-light);
-    animation: mic-pulse 1s ease-in-out infinite;
+  .input-tab {
+    flex: 1; padding: 10px 8px; border: none; background: white;
+    font-family: sans-serif; font-size: 0.8rem; cursor: pointer; color: var(--dr-muted);
+    transition: all 0.15s; border-right: 1.5px solid var(--dr-border);
   }
-  .mic-btn.transcribing { border-color: var(--dr-amber); color: var(--dr-amber); background: var(--dr-amber-light); }
-  @keyframes mic-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
-  .mic-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
+  .input-tab:last-child { border-right: none; }
+  .input-tab:hover { background: var(--dr-cream); color: var(--dr-navy); }
+  .input-tab.active { background: var(--dr-navy); color: white; font-weight: bold; }
 
-  /* TRANSCRIPTION */
+  /* RECORD BUTTON */
+  .record-centre { text-align: center; padding: 20px 0 14px; }
+  .record-btn {
+    width: 100px; height: 100px; border-radius: 50%;
+    border: 3px solid var(--dr-border); background: white; cursor: pointer;
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 5px; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+  .record-btn:hover { border-color: var(--dr-red); box-shadow: 0 4px 20px rgba(185,50,50,0.2); }
+  .record-btn.recording { border-color: var(--dr-red); background: var(--dr-red-light); animation: rec-pulse 1s ease-in-out infinite; }
+  .record-btn.done { border-color: var(--dr-green); background: var(--dr-green-light); }
+  @keyframes rec-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .record-icon { font-size: 2rem; line-height: 1; }
+  .record-label { font-family: sans-serif; font-size: 0.68rem; color: var(--dr-muted); }
+  .record-btn.recording .record-label { color: var(--dr-red); }
+  .record-btn.done .record-label { color: var(--dr-green); }
+  .record-timer { font-family: monospace; font-size: 1.5rem; color: var(--dr-red); margin-top: 14px; font-weight: bold; letter-spacing: 0.05em; }
+  .record-hint { font-family: sans-serif; font-size: 0.74rem; color: var(--dr-muted); margin-top: 10px; }
+
+  /* UPLOAD / TRANSCRIPTION */
   .upload-zone {
     border: 2px dashed var(--dr-border); border-radius: 10px; padding: 28px 20px;
     text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s;
@@ -268,7 +284,7 @@
   .transcript-preview { background: var(--dr-cream); border: 1px solid var(--dr-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; }
   .transcript-toggle { font-family: sans-serif; font-size: 0.81rem; cursor: pointer; color: var(--dr-blue); user-select: none; }
   #transcript-text { font-family: sans-serif; font-size: 0.79rem; color: var(--dr-muted); line-height: 1.6; margin-top: 8px; white-space: pre-wrap; max-height: 160px; overflow-y: auto; }
-  .transcribe-intro { font-family: sans-serif; font-size: 0.81rem; color: var(--dr-muted); margin: 0 0 10px; }
+  .transcribe-intro { font-family: sans-serif; font-size: 0.81rem; color: var(--dr-muted); margin: 0 0 12px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -423,22 +439,22 @@
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <div class="q-label"><div class="q-num">1</div><div class="q-title">Felt Needs</div><button class="mic-btn" id="mic-q1" onclick="toggleMic('q1')" type="button"><span class="mic-dot"></span> <span class="mic-label">Dictate</span></button></div>
+        <div class="q-label"><div class="q-num">1</div><div class="q-title">Felt Needs</div></div>
         <div class="q-desc">"What topics would you most want to learn from other key missional parishes around the country?"</div>
         <textarea id="q1" placeholder="Enter the parish's response…"></textarea>
       </div>
       <div class="form-group">
-        <div class="q-label"><div class="q-num">2</div><div class="q-title">Your Strengths</div><button class="mic-btn" id="mic-q2" onclick="toggleMic('q2')" type="button"><span class="mic-dot"></span> <span class="mic-label">Dictate</span></button></div>
+        <div class="q-label"><div class="q-num">2</div><div class="q-title">Your Strengths</div></div>
         <div class="q-desc">"What do you think is going really well in your parish right now that might be of real interest to others?"</div>
         <textarea id="q2" placeholder="Enter the parish's response…"></textarea>
       </div>
       <div class="form-group">
-        <div class="q-label"><div class="q-num">3</div><div class="q-title">Current Challenges</div><button class="mic-btn" id="mic-q3" onclick="toggleMic('q3')" type="button"><span class="mic-dot"></span> <span class="mic-label">Dictate</span></button></div>
+        <div class="q-label"><div class="q-num">3</div><div class="q-title">Current Challenges</div></div>
         <div class="q-desc">"What's not going as well as you'd like — that you'd love to see what other parishes are doing in that area?"</div>
         <textarea id="q3" placeholder="Enter the parish's response…"></textarea>
       </div>
       <div class="form-group">
-        <div class="q-label"><div class="q-num">4</div><div class="q-title">Future Dreams</div><button class="mic-btn" id="mic-q4" onclick="toggleMic('q4')" type="button"><span class="mic-dot"></span> <span class="mic-label">Dictate</span></button></div>
+        <div class="q-label"><div class="q-num">4</div><div class="q-title">Future Dreams</div></div>
         <div class="q-desc">"In the next 2–3 years, what are you dreaming about that you'd love to get input on from brother priests?"</div>
         <textarea id="q4" placeholder="Enter the parish's response…"></textarea>
       </div>
@@ -454,6 +470,7 @@
   </div>
 </div>
 
+<!-- EDIT DETAILS MODAL -->
 <div class="modal-overlay" id="details-modal">
   <div class="modal">
     <div class="modal-header">
@@ -489,39 +506,66 @@
   </div>
 </div>
 
+<!-- CAPTURE INTERVIEW MODAL -->
 <div class="modal-overlay" id="transcribe-modal">
   <div class="modal" style="max-width:700px">
     <div class="modal-header">
-      <div><h3>🎙 Transcribe Interview</h3><p id="transcribe-subtitle"></p></div>
+      <div><h3>🎙 Capture Interview</h3><p id="transcribe-subtitle"></p></div>
       <button class="modal-close" onclick="closeTranscribe()">✕</button>
     </div>
     <div class="modal-body">
-      <!-- Step 1: Upload -->
-      <div id="transcribe-step-upload">
-        <p class="transcribe-intro">Upload a recording of the interview or a short voice summary. Claude will transcribe it and extract responses to all four questions for your review.</p>
+
+      <!-- INPUT TABS -->
+      <div class="input-tabs" id="input-tabs">
+        <button class="input-tab active" onclick="switchInputTab('record',this)">⏺ Record</button>
+        <button class="input-tab" onclick="switchInputTab('upload',this)">⬆ Upload File</button>
+        <button class="input-tab" onclick="switchInputTab('paste',this)">📋 Paste Transcript</button>
+      </div>
+
+      <!-- TAB: RECORD -->
+      <div id="tab-record" class="tab-panel">
+        <p class="transcribe-intro">Record the interview directly — ideal for in-person conversations. Tap the button to start, tap again to stop.</p>
+        <div class="record-centre">
+          <button class="record-btn" id="record-btn" onclick="toggleRecording()" type="button">
+            <span class="record-icon">⏺</span>
+            <span class="record-label">Tap to Record</span>
+          </button>
+          <div class="record-timer" id="record-timer" style="display:none">00:00</div>
+          <p class="record-hint" id="record-hint">Recording captures everything — AI extracts the four responses</p>
+        </div>
+      </div>
+
+      <!-- TAB: UPLOAD -->
+      <div id="tab-upload" class="tab-panel" style="display:none">
+        <p class="transcribe-intro">Upload a phone call recording or voice memo. Works with any audio file recorded on your device.</p>
         <div class="upload-zone" id="upload-zone">
-          <div class="upload-icon">🎙</div>
+          <div class="upload-icon">⬆</div>
           <div class="upload-label">Drop audio file here or click to browse</div>
-          <div class="upload-hint">MP3, M4A, WAV, OGG · up to 20MB<br>Tip: a 3–5 min voice summary after the call works perfectly</div>
+          <div class="upload-hint">MP3, M4A, WAV, OGG · up to 20MB</div>
           <input type="file" id="audio-file-input" accept=".mp3,.m4a,.wav,.ogg,.webm,audio/*" style="display:none">
         </div>
         <div id="file-selected" style="display:none" class="file-selected-bar">
           <span id="file-name-label"></span>
           <button onclick="clearAudioFile()" class="btn btn-ghost btn-sm">✕ Clear</button>
         </div>
-        <button class="btn btn-primary" id="transcribe-btn" onclick="runTranscription()" style="margin-top:12px;width:100%" disabled>
-          🎙 Transcribe &amp; Extract Responses
-        </button>
       </div>
-      <!-- Step 2: Processing -->
-      <div id="transcribe-step-processing" style="display:none;text-align:center;padding:28px 0">
+
+      <!-- TAB: PASTE -->
+      <div id="tab-paste" class="tab-panel" style="display:none">
+        <p class="transcribe-intro">Paste the meeting transcript from Zoom, Teams, Otter.ai, or any transcription tool. AI extracts all four responses automatically.</p>
+        <textarea id="paste-transcript" style="min-height:200px;font-family:sans-serif;font-size:0.82rem" placeholder="Paste your transcript here…"></textarea>
+      </div>
+
+      <!-- PROCESSING -->
+      <div id="transcribe-step-processing" style="display:none;text-align:center;padding:32px 0">
         <div class="transcribe-spinner"></div>
-        <div id="transcribe-status" style="margin-top:14px;font-family:sans-serif;font-size:0.87rem;color:var(--dr-muted)">Uploading…</div>
+        <div id="transcribe-status" style="margin-top:16px;font-family:sans-serif;font-size:0.87rem;color:var(--dr-muted)">Processing…</div>
       </div>
-      <!-- Step 3: Review -->
+
+      <!-- REVIEW -->
       <div id="transcribe-step-review" style="display:none">
         <div class="transcript-preview">
-          <div class="transcript-toggle" onclick="toggleTranscript()">📄 View full transcript <span id="transcript-arrow">▼</span></div>
+          <div class="transcript-toggle" onclick="toggleTranscript()">📄 View source transcript <span id="transcript-arrow">▼</span></div>
           <div id="transcript-text" style="display:none"></div>
         </div>
         <p class="transcribe-intro">Review and edit the extracted responses before saving:</p>
@@ -531,9 +575,11 @@
         <div class="form-group"><div class="q-label"><div class="q-num">4</div><div class="q-title">Future Dreams</div></div><textarea id="t-q4" style="min-height:70px"></textarea></div>
         <div class="form-group"><label>Notes <span class="opt">(internal, not in Brent's summary)</span></label><textarea id="t-notes" style="min-height:50px"></textarea></div>
       </div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeTranscribe()">Cancel</button>
+      <button class="btn btn-primary" id="extract-btn" onclick="runExtraction()">→ Extract Responses</button>
       <button class="btn btn-primary" id="apply-transcription-btn" onclick="applyTranscription()" style="display:none">✓ Save Responses</button>
     </div>
   </div>
@@ -563,7 +609,6 @@ async function init() {
   setSync('ok', 'Connected');
   renderAll();
 
-  // Real-time subscription — updates across all connected browsers
   db.channel('beacon_parishes_changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, payload => {
       if (payload.eventType === 'INSERT') {
@@ -589,11 +634,11 @@ function setSync(state, label) {
 
 // ── CRUD ──────────────────────────────────────────────────────────────────────
 async function addParish() {
-  const name  = document.getElementById('new-parish').value.trim();
-  const priest= document.getElementById('new-priest').value.trim();
-  const rl    = document.getElementById('new-rl').value;
+  const name   = document.getElementById('new-parish').value.trim();
+  const priest = document.getElementById('new-priest').value.trim();
+  const rl     = document.getElementById('new-rl').value;
   const diocese = document.getElementById('new-diocese').value.trim();
-  const coach = document.getElementById('new-coach').value;
+  const coach  = document.getElementById('new-coach').value;
   const coachStatus = document.getElementById('new-coach-status').value;
 
   if (!name || !priest) { showToast('Parish name and priest are required', 'error'); return; }
@@ -607,7 +652,6 @@ async function addParish() {
   });
   setSync('ok', 'Connected');
   if (error) { showToast('Error adding parish', 'error'); return; }
-
   ['new-parish','new-priest','new-diocese'].forEach(id => document.getElementById(id).value='');
   document.getElementById('new-rl').value='';
   document.getElementById('new-coach').value='';
@@ -764,7 +808,7 @@ function renderCards() {
           <button class="btn btn-gold btn-sm" onclick="openSurvey('${p.id}')">
             ${p.status === 'not-started' ? '📝 Enter' : '✏️ Edit'}
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="openTranscribe('${p.id}')" title="Transcribe interview recording">🎙</button>
+          <button class="btn btn-ghost btn-sm" onclick="openTranscribe('${p.id}')" title="Capture interview">🎙</button>
           <button class="btn btn-ghost btn-sm" onclick="openEditDetails('${p.id}')" title="Edit parish details">⚙</button>
           <button class="btn btn-danger btn-sm" onclick="removeParish('${p.id}')">✕</button>
         </div>
@@ -848,73 +892,167 @@ document.getElementById('details-modal').addEventListener('click', e => { if (e.
 document.getElementById('transcribe-modal').addEventListener('click', e => { if (e.target.id==='transcribe-modal') closeTranscribe(); });
 document.addEventListener('keydown', e => { if (e.key==='Escape') { closeModal(); closeEditDetails(); closeTranscribe(); } });
 
-// ── TRANSCRIPTION ─────────────────────────────────────────────────────────────
+// ── CAPTURE INTERVIEW ─────────────────────────────────────────────────────────
 let transcribingId = null;
+let activeTab = 'record';
+let recorder = null;
+let recordChunks = [];
+let timerInterval = null;
+let recordSeconds = 0;
 
 function openTranscribe(id) {
   const p = parishes.find(x => x.id === id);
   if (!p) return;
   transcribingId = id;
   document.getElementById('transcribe-subtitle').textContent = p.name;
-  document.getElementById('transcribe-step-upload').style.display = '';
-  document.getElementById('transcribe-step-processing').style.display = 'none';
-  document.getElementById('transcribe-step-review').style.display = 'none';
-  document.getElementById('apply-transcription-btn').style.display = 'none';
-  document.getElementById('audio-file-input').value = '';
-  document.getElementById('file-selected').style.display = 'none';
-  document.getElementById('transcribe-btn').disabled = true;
+  resetCaptureModal();
   document.getElementById('transcribe-modal').classList.add('open');
 }
 
 function closeTranscribe() {
+  if (recorder && recorder.state === 'recording') recorder.stop();
+  clearInterval(timerInterval);
   document.getElementById('transcribe-modal').classList.remove('open');
   transcribingId = null;
 }
 
-function clearAudioFile() {
+function resetCaptureModal() {
+  document.getElementById('input-tabs').style.display = '';
+  document.getElementById('tab-record').style.display = '';
+  document.getElementById('tab-upload').style.display = 'none';
+  document.getElementById('tab-paste').style.display = 'none';
+  document.getElementById('transcribe-step-processing').style.display = 'none';
+  document.getElementById('transcribe-step-review').style.display = 'none';
+  document.getElementById('extract-btn').style.display = '';
+  document.getElementById('apply-transcription-btn').style.display = 'none';
+  // Reset record button
+  const btn = document.getElementById('record-btn');
+  btn.className = 'record-btn';
+  btn.querySelector('.record-icon').textContent = '⏺';
+  btn.querySelector('.record-label').textContent = 'Tap to Record';
+  document.getElementById('record-timer').style.display = 'none';
+  document.getElementById('record-hint').textContent = 'Recording captures everything — AI extracts the four responses';
+  // Reset upload
   document.getElementById('audio-file-input').value = '';
   document.getElementById('file-selected').style.display = 'none';
-  document.getElementById('transcribe-btn').disabled = true;
+  // Reset paste
+  document.getElementById('paste-transcript').value = '';
+  // Reset tab buttons
+  document.querySelectorAll('.input-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  activeTab = 'record';
+  recordChunks = [];
 }
 
-function toggleTranscript() {
-  const el = document.getElementById('transcript-text');
-  const arrow = document.getElementById('transcript-arrow');
-  if (el.style.display === 'none') { el.style.display = 'block'; arrow.textContent = '▲'; }
-  else { el.style.display = 'none'; arrow.textContent = '▼'; }
+function switchInputTab(tab, btn) {
+  activeTab = tab;
+  document.querySelectorAll('.input-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('tab-record').style.display = tab === 'record' ? '' : 'none';
+  document.getElementById('tab-upload').style.display = tab === 'upload' ? '' : 'none';
+  document.getElementById('tab-paste').style.display = tab === 'paste' ? '' : 'none';
 }
 
-async function runTranscription() {
-  const fileInput = document.getElementById('audio-file-input');
-  const file = fileInput.files[0];
-  if (!file) return;
-  const p = parishes.find(x => x.id === transcribingId);
-  document.getElementById('transcribe-step-upload').style.display = 'none';
-  document.getElementById('transcribe-step-processing').style.display = '';
-  document.getElementById('transcribe-status').textContent = 'Reading audio file…';
+async function toggleRecording() {
+  const btn = document.getElementById('record-btn');
+
+  if (recorder && recorder.state === 'recording') {
+    recorder.stop();
+    clearInterval(timerInterval);
+    btn.className = 'record-btn done';
+    btn.querySelector('.record-icon').textContent = '✓';
+    btn.querySelector('.record-label').textContent = 'Recording saved';
+    document.getElementById('record-hint').textContent = 'Click "Extract Responses" when ready';
+    return;
+  }
+
   try {
-    const base64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-    document.getElementById('transcribe-status').textContent = 'Transcribing… this may take 30–60 seconds';
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordChunks = [];
+    recordSeconds = 0;
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+    recorder = new MediaRecorder(stream, { mimeType });
+    recorder.ondataavailable = e => { if (e.data.size > 0) recordChunks.push(e.data); };
+    recorder.onstop = () => stream.getTracks().forEach(t => t.stop());
+    recorder.start();
+
+    btn.className = 'record-btn recording';
+    btn.querySelector('.record-icon').textContent = '⏹';
+    btn.querySelector('.record-label').textContent = 'Tap to Stop';
+    document.getElementById('record-hint').textContent = 'Recording in progress…';
+
+    const timerEl = document.getElementById('record-timer');
+    timerEl.style.display = 'block';
+    timerEl.textContent = '00:00';
+    timerInterval = setInterval(() => {
+      recordSeconds++;
+      const m = Math.floor(recordSeconds / 60).toString().padStart(2,'0');
+      const s = (recordSeconds % 60).toString().padStart(2,'0');
+      timerEl.textContent = `${m}:${s}`;
+    }, 1000);
+
+  } catch (err) {
+    if (err.name === 'NotAllowedError') {
+      showToast('Microphone access denied — please allow it in your browser', 'error');
+    } else {
+      showToast('Could not start recording: ' + err.message, 'error');
+    }
+  }
+}
+
+async function runExtraction() {
+  const p = parishes.find(x => x.id === transcribingId);
+
+  // Hide input area, show processing
+  document.getElementById('input-tabs').style.display = 'none';
+  ['tab-record','tab-upload','tab-paste'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('extract-btn').style.display = 'none';
+  document.getElementById('transcribe-step-processing').style.display = '';
+
+  try {
+    let requestBody;
+
+    if (activeTab === 'paste') {
+      const transcript = document.getElementById('paste-transcript').value.trim();
+      if (!transcript) { resetCaptureModal(); showToast('Please paste a transcript first', 'error'); return; }
+      document.getElementById('transcribe-status').textContent = 'Extracting responses from transcript…';
+      requestBody = { transcript, parishName: p?.name || '', mode: 'text' };
+
+    } else if (activeTab === 'upload') {
+      const file = document.getElementById('audio-file-input').files[0];
+      if (!file) { resetCaptureModal(); showToast('Please select a file first', 'error'); return; }
+      document.getElementById('transcribe-status').textContent = 'Reading audio file…';
+      const base64 = await blobToBase64(file);
+      document.getElementById('transcribe-status').textContent = 'Transcribing audio… this may take 30–60 seconds';
+      requestBody = { audioBase64: base64, mimeType: file.type, fileName: file.name, parishName: p?.name || '' };
+
+    } else { // record
+      if (!recordChunks.length) { resetCaptureModal(); showToast('Please record something first', 'error'); return; }
+      document.getElementById('transcribe-status').textContent = 'Transcribing recording…';
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+      const blob = new Blob(recordChunks, { type: mimeType });
+      const base64 = await blobToBase64(blob);
+      requestBody = { audioBase64: base64, mimeType, fileName: 'interview.' + (mimeType === 'audio/webm' ? 'webm' : 'm4a'), parishName: p?.name || '' };
+    }
+
     const response = await fetch('/api/transcribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audioBase64: base64, mimeType: file.type, fileName: file.name, parishName: p?.name || '' }),
+      body: JSON.stringify(requestBody),
     });
+
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       throw new Error(err.error || `Server error (${response.status})`);
     }
+
     document.getElementById('transcribe-status').textContent = 'Extracting responses…';
     const data = await response.json();
+
+    // Show review
     document.getElementById('transcribe-step-processing').style.display = 'none';
     document.getElementById('transcribe-step-review').style.display = '';
     document.getElementById('apply-transcription-btn').style.display = '';
-    document.getElementById('transcript-text').textContent = data.transcript || '(no transcript returned)';
+    document.getElementById('transcript-text').textContent = data.transcript || requestBody.transcript || '(transcript not available)';
     document.getElementById('transcript-arrow').textContent = '▼';
     document.getElementById('transcript-text').style.display = 'none';
     document.getElementById('t-q1').value = data.q1 || '';
@@ -922,12 +1060,27 @@ async function runTranscription() {
     document.getElementById('t-q3').value = data.q3 || '';
     document.getElementById('t-q4').value = data.q4 || '';
     document.getElementById('t-notes').value = data.notes || '';
+
   } catch (err) {
-    document.getElementById('transcribe-step-processing').style.display = 'none';
-    document.getElementById('transcribe-step-upload').style.display = '';
-    document.getElementById('transcribe-btn').disabled = false;
-    showToast('Transcription error: ' + err.message, 'error');
+    resetCaptureModal();
+    showToast('Error: ' + err.message, 'error');
   }
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function toggleTranscript() {
+  const el = document.getElementById('transcript-text');
+  const arrow = document.getElementById('transcript-arrow');
+  if (el.style.display === 'none') { el.style.display = 'block'; arrow.textContent = '▲'; }
+  else { el.style.display = 'none'; arrow.textContent = '▼'; }
 }
 
 async function applyTranscription() {
@@ -938,13 +1091,14 @@ async function applyTranscription() {
   const q3 = document.getElementById('t-q3').value.trim();
   const q4 = document.getElementById('t-q4').value.trim();
   const notes = document.getElementById('t-notes').value.trim();
-  const status = (q1||q2||q3||q4) ? 'in-progress' : 'not-started';
+  const answered = [q1,q2,q3,q4].filter(Boolean).length;
+  const status = answered === 0 ? 'not-started' : answered < 4 ? 'in-progress' : 'complete';
   setSync('syncing', 'Saving…');
   const { error } = await db.from(TABLE).update({ q1, q2, q3, q4, notes, status }).eq('id', transcribingId);
   if (error) { setSync('error', 'Save failed'); showToast('Could not save — try again', 'error'); return; }
   Object.assign(p, { q1, q2, q3, q4, notes, status });
-  setSync('ok', 'Saved');
-  showToast('Interview responses saved ✓');
+  setSync('ok', 'Connected');
+  showToast('Responses saved ✓');
   closeTranscribe();
   renderAll();
 }
@@ -962,108 +1116,20 @@ document.getElementById('audio-file-input').addEventListener('change', e => {
   }
   document.getElementById('file-name-label').textContent = `${file.name} (${mb} MB)`;
   document.getElementById('file-selected').style.display = 'flex';
-  document.getElementById('transcribe-btn').disabled = false;
 });
 const uploadZone = document.getElementById('upload-zone');
 uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
 uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
 uploadZone.addEventListener('drop', e => {
   e.preventDefault(); uploadZone.classList.remove('drag-over');
-  const dt = e.dataTransfer;
-  if (dt.files[0]) {
-    const input = document.getElementById('audio-file-input');
-    // Simulate file selection
-    const file = dt.files[0];
-    const mb = (file.size / 1024 / 1024).toFixed(1);
-    if (file.size > 20 * 1024 * 1024) { showToast(`File too large (${mb} MB)`, 'error'); return; }
-    Object.defineProperty(input, 'files', { value: dt.files, configurable: true });
-    document.getElementById('file-name-label').textContent = `${file.name} (${mb} MB)`;
-    document.getElementById('file-selected').style.display = 'flex';
-    document.getElementById('transcribe-btn').disabled = false;
-  }
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const mb = (file.size / 1024 / 1024).toFixed(1);
+  if (file.size > 20 * 1024 * 1024) { showToast(`File too large (${mb} MB)`, 'error'); return; }
+  Object.defineProperty(document.getElementById('audio-file-input'), 'files', { value: e.dataTransfer.files, configurable: true });
+  document.getElementById('file-name-label').textContent = `${file.name} (${mb} MB)`;
+  document.getElementById('file-selected').style.display = 'flex';
 });
-
-// ── MIC DICTATION ─────────────────────────────────────────────────────────────
-let activeRecorder = null;
-let activeFieldId = null;
-let audioChunks = [];
-
-async function toggleMic(fieldId) {
-  // If already recording this field — stop
-  if (activeRecorder && activeFieldId === fieldId) {
-    activeRecorder.stop();
-    return;
-  }
-  // If recording a different field — stop that first
-  if (activeRecorder) activeRecorder.stop();
-
-  const btn = document.getElementById('mic-' + fieldId);
-  const label = btn.querySelector('.mic-label');
-
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioChunks = [];
-    activeFieldId = fieldId;
-
-    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
-    activeRecorder = new MediaRecorder(stream, { mimeType });
-
-    activeRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-
-    activeRecorder.onstop = async () => {
-      stream.getTracks().forEach(t => t.stop());
-      btn.className = 'mic-btn transcribing';
-      label.textContent = 'Transcribing…';
-
-      try {
-        const blob = new Blob(audioChunks, { type: mimeType });
-        const base64 = await new Promise((res, rej) => {
-          const reader = new FileReader();
-          reader.onload = e => res(e.target.result.split(',')[1]);
-          reader.onerror = rej;
-          reader.readAsDataURL(blob);
-        });
-
-        const response = await fetch('/api/transcribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            audioBase64: base64,
-            mimeType,
-            fileName: 'voice.' + (mimeType === 'audio/webm' ? 'webm' : 'm4a'),
-            mode: 'field',
-          }),
-        });
-
-        if (!response.ok) throw new Error('Transcription failed');
-        const data = await response.json();
-
-        const textarea = document.getElementById(fieldId);
-        const existing = textarea.value.trim();
-        textarea.value = existing ? existing + '\n\n' + data.transcript : data.transcript;
-        textarea.focus();
-        showToast('Transcribed ✓');
-      } catch (err) {
-        showToast('Could not transcribe — try again', 'error');
-      }
-
-      btn.className = 'mic-btn';
-      label.textContent = 'Dictate';
-      activeRecorder = null;
-      activeFieldId = null;
-    };
-
-    activeRecorder.start();
-    btn.className = 'mic-btn recording';
-    label.textContent = 'Stop';
-  } catch (err) {
-    if (err.name === 'NotAllowedError') {
-      showToast('Microphone access denied — please allow it in your browser', 'error');
-    } else {
-      showToast('Could not start recording: ' + err.message, 'error');
-    }
-  }
-}
 
 // ── EDIT DETAILS ──────────────────────────────────────────────────────────────
 let editingDetailsId = null;
@@ -1102,7 +1168,7 @@ async function saveDetails() {
   const { error } = await db.from(TABLE).update(updates).eq('id', editingDetailsId);
   if (error) { setSync('error', 'Save failed'); showToast('Could not save — try again', 'error'); return; }
   Object.assign(p, updates);
-  setSync('ok', 'Saved');
+  setSync('ok', 'Connected');
   showToast('Parish details updated');
   closeEditDetails();
   renderAll();
