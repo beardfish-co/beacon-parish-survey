@@ -687,6 +687,8 @@ async function saveSurvey() {
   document.getElementById('save-btn').textContent = 'Save Responses';
   setSync('ok', 'Connected');
   if (error) { showToast('Error saving responses', 'error'); return; }
+  Object.assign(p, { q1, q2, q3, q4, notes, status });
+  renderAll();
   closeModal();
   showToast('✓ Responses saved');
 }
