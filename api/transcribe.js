@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured in Vercel environment variables' });
 
-  const { audioBase64, mimeType, fileName, parishName } = req.body || {};
+  const { audioBase64, mimeType, fileName, parishName, mode } = req.body || {};
   if (!audioBase64) return res.status(400).json({ error: 'No audio data provided' });
 
   try {
@@ -31,6 +31,9 @@ export default async function handler(req, res) {
     }
 
     const { text: transcript } = await whisperRes.json();
+
+    // Field mode — just return the transcript, skip GPT extraction
+    if (mode === 'field') return res.json({ transcript });
 
     // ── 2. Extract Q1–Q4 with GPT-4o-mini ────────────────────────────────────
     const extractRes = await fetch('https://api.openai.com/v1/chat/completions', {
