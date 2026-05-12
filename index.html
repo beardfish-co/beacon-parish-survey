@@ -425,8 +425,7 @@
   <div style="display:flex;align-items:center;gap:16px">
     <div class="sync-label"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Connected</span></div>
     <nav class="nav-tabs">
-      <button class="nav-tab active" onclick="switchView('tracker',this)">Parish Tracker</button>
-      <button class="nav-tab" onclick="switchView('summary',this)">Summary for Brent</button>
+      <button class="nav-tab active">Parish Tracker</button>
     </nav>
   </div>
 </header>
@@ -527,14 +526,6 @@
     </div>
   </div>
 
-  <!-- SUMMARY -->
-  <div class="view" id="view-summary">
-    <div class="export-bar">
-      <div><h3>Summary for Brent Delfo</h3><p>Compiled responses — input for agenda design · Beacon Event, March 2027</p></div>
-      <button class="btn btn-ghost" onclick="window.print()" style="color:white;border-color:rgba(255,255,255,0.35)">🖨 Print / PDF</button>
-    </div>
-    <div id="summary-content"></div>
-  </div>
 
 </main>
 
@@ -863,7 +854,7 @@ function getFiltered() {
   });
 }
 
-function renderAll() { renderCards(); renderSummary(); }
+function renderAll() { renderCards(); }
 
 function renderCards() {
   const grid = document.getElementById('parish-grid');
@@ -922,50 +913,6 @@ function renderCards() {
   }).join('');
 }
 
-const QUESTIONS = [
-  {num:1, title:'Felt Needs', key:'q1', q:'"What topics would you most want to learn from other key missional parishes around the country?"'},
-  {num:2, title:'Your Strengths', key:'q2', q:'"What do you think is going really well in your parish right now that might be of real interest to others?"'},
-  {num:3, title:'Current Challenges', key:'q3', q:'"What\'s not going as well as you\'d like — that you\'d love to see what other parishes are doing in that area?"'},
-  {num:4, title:'Future Dreams', key:'q4', q:'"In the next 2–3 years, what are you dreaming about that you\'d love to get input on from brother priests?"'},
-];
-
-function renderSummary() {
-  const el = document.getElementById('summary-content');
-  if (!el) return;
-  const complete = parishes.filter(p => p.status === 'complete').length;
-  const hasAny = parishes.filter(p => p.status !== 'not-started').length;
-  if (parishes.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><h3>No data yet</h3><p>Add parishes and enter responses in the Parish Tracker tab.</p></div>`;
-    return;
-  }
-  let html = `<div class="summary-intro"><h2>Pre-Event Survey — Compiled Responses</h2><p><strong>${complete}</strong> complete · <strong>${hasAny}</strong> with some responses · <strong>${parishes.length}</strong> total parishes · Divine Renovation Australia · Beacon Event, March 2027</p></div>`;
-  QUESTIONS.forEach(q => {
-    const responses = parishes.filter(p => p[q.key] && p[q.key].trim());
-    html += `<div class="q-summary-block"><div class="q-summary-header"><div class="q-num">${q.num}</div><div class="q-info"><h3>${q.title}</h3><p>${q.q}</p></div></div><div>`;
-    if (!responses.length) {
-      html += `<div class="no-responses">No responses recorded yet.</div>`;
-    } else {
-      responses.forEach(p => {
-        let cb = '';
-        if (p.coach && p.coach_status === 'current') cb = `<span class="tag tag-coach-current" style="font-size:0.68rem;padding:1px 6px">🟢 ${esc(p.coach)}</span>`;
-        else if (p.coach && p.coach_status === 'historical') cb = `<span class="tag tag-coach-historical" style="font-size:0.68rem;padding:1px 6px">↩ ${esc(p.coach)}</span>`;
-        html += `<div class="q-response-item">
-          <div class="q-response-parish">
-            <div class="p-name">${esc(p.name)}</div>
-            <div class="p-meta">${esc(p.priest)}${p.diocese?'<br>'+esc(p.diocese):''}</div>
-            <div class="p-tags">
-              ${p.regional_lead?`<span class="tag tag-rl" style="font-size:0.68rem;padding:1px 6px">📍 ${esc(p.regional_lead)}</span>`:''}
-              ${cb}
-            </div>
-          </div>
-          <div class="q-response-text">${esc(p[q.key]).replace(/\n/g,'<br>')}</div>
-        </div>`;
-      });
-    }
-    html += `</div></div>`;
-  });
-  el.innerHTML = html;
-}
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function togglePanel(id) {
@@ -973,13 +920,6 @@ function togglePanel(id) {
   document.getElementById(id).classList.toggle('open');
 }
 
-function switchView(view, btn) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('view-'+view).classList.add('active');
-  if (btn) btn.classList.add('active');
-  if (view === 'summary') renderSummary();
-}
 
 function esc(s) {
   if (!s) return '';
